@@ -1,21 +1,20 @@
-(ns caribou-frontend.core
-  (:use caribou.debug
-        compojure.core
+(ns caribou.app.core
+  (:use compojure.core
         [clojure.string :only (join)]
         [clojure.walk :only (stringify-keys)]
-        [ring.middleware file file-info stacktrace reload])
-  (:require [caribou.model :as model]
+        [ring.middleware file file-info])
+  (:require [clojure.string :as string]
+            [clojure.java.jdbc :as sql]
+            [clojure.java.io :as io]
+            [caribou.model :as model]
+            [caribou.util :as util]
             [caribou.db :as db]
+            [caribou.config :as config]
             [caribou.app.controller :as controller]
             [caribou.app.template :as template]
             [caribou.app.view :as view]
-            [clojure.string :as string]
-            [clojure.java.jdbc :as sql]
             [compojure.route :as route]
-            [ring.adapter.jetty :as ring]
-            [compojure.handler :as handler]
-            [caribou.app.config :as config]
-            [clojure.java.io :as io]))
+            [compojure.handler :as handler]))
 
 (import (java.io File))
 
@@ -46,12 +45,12 @@
     (fn [params]
       (do
         (controller/load-controllers "app/controllers")
-        (template/load-templates (join config/file-sep [config/root "app" "templates"]))
+        (template/load-templates (util/pathify [config/root "app" "templates"]))
         (let [action (retrieve-action controller-key action-key)
               found-template
               (or template
                   (do
-                    (template/load-templates (join config/file-sep [config/root "app" "templates"]))
+                    (template/load-templates (util/pathify [config/root "app" "templates"]))
                     (@template/templates (keyword (page :template)))))]
           (if found-template
             (found-template (stringify-keys (action (assoc params :page page))))
@@ -108,7 +107,7 @@
 (defn invoke-routes
   "Invoke pages from the db and generate the routes based on them."
   []
-  (template/load-templates (join config/file-sep [config/root "app" "templates"]))
+  (template/load-templates (util/pathify [config/root "app" "templates"]))
   (sql/with-connection @config/db
     (let [_pages (invoke-pages)
           generated (doall (generate-routes @pages))]
@@ -136,9 +135,8 @@
   [db]
   (sql/with-connection db (page-init))
   (def app (-> all-routes
-               (wrap-file (join config/file-sep [config/root "public"]))
+               (wrap-file (util/pathify [config/root "public"]))
                (wrap-file-info)
-               (wrap-stacktrace)
                (handler/site)
                (db/wrap-db db))))
 
