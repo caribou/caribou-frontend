@@ -1,4 +1,6 @@
-(ns caribou.app.template.freemarker)
+(ns caribou.app.template.freemarker
+  (:use   caribou.debug
+          [clojure.walk :only (stringify-keys)]))
 (import '(freemarker.template Configuration DefaultObjectWrapper))
 (import '(freemarker.cache NullCacheStorage))
 (import '(java.io StringWriter File))
@@ -22,7 +24,7 @@
   "Process a Freemarker template, returns a String"
   ([template root template-length]
   (let [out (StringWriter. template-length)]
-    (.process template root out)
+    (.process template (stringify-keys root) out)
     (.toString out)))
  
   ([template root]
