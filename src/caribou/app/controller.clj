@@ -7,5 +7,5 @@
   ;FIXME is string concatenation idomatic?
   (let [full-ns-name (str controller-ns "." controller-key)
         full-ns (symbol full-ns-name)]
-       (require full-ns)
+       (require :reload full-ns)
        (ns-resolve full-ns (symbol action-key))))
