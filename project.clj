@@ -3,6 +3,7 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [antler/caribou-core "0.5.0"]
                  [compojure "1.0.1"]
+                 [clj-time "0.3.6"]
                  [ring/ring-core "1.0.2"
                   :exclusions [org.clojure/clojure
                                clj-stacktrace]]
@@ -14,7 +15,7 @@
                  [org.clojars.cjschroed/sandbar "0.4.0"]]
                  ;; [antler/sandbar "0.4.0-SNAPSHOT"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-  :ring {:handler caribou.app.core/app
+  :ring {:handler caribou.app.core/handler
          :servlet-name "caribou-frontend"
          :init caribou.app.core/init
          :port 33333})
