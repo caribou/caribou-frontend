@@ -2,41 +2,75 @@
   (:use compojure.core
         [caribou.debug])
   (:require [clojure.string :as string]
+            [caribou.app.pages :as pages]
+            [caribou.app.routing :as routing]
             [caribou.config :as config]
             [caribou.model :as model]))
 
-(defn check-key
-  "Inspects the X-Halo-Key request header and validates it"
-  [request f]
-    (let [headers (request :headers)
-          req-key (headers "x-halo-key")]
-      (if (= (config/app :halo-key) req-key)
-        (do
-          (f request))
-        {:status 401 :body "Forbidden"})))
+(declare route-reloader)
+(declare halo-routes)
 
-(def route-reloader (ref (fn [] "The route reloader has not been set")))
+;; =======================
+;; Route creation
+;; =======================
+
+(defn check-key
+  "Wraps Halo requests and inspects the X-Halo-Key request header."
+  [request func]
+  (let [headers (request :headers)
+        req-key (headers "x-halo-key")
+        app-key (@config/app :halo-key)]
+    (if (= app-key req-key)
+      (do 
+        (func request))
+      {:status 401 :body "Forbidden"})))
+
+(defn make-route
+  [[method path func]]
+  (let [full-path (str (@config/app :halo-prefix) "/" path)]
+    (routing/add-route method full-path (fn [request] (check-key request func)))))
+
+(defn generate-routes
+  []
+  (if (and (@config/app :halo-enabled) (@config/app :halo-key))
+    (do
+      (doall
+        (map make-route halo-routes)))))
+
+;; =======================
+;; Halo routes
+;; =======================
 
 (defn reload-routes
-  "reloads the routes in this Caribou app"
+  "reloads the Page routes in this Caribou app"
   [request]
-  (route-reloader))
+  (pages/create-page-routes)
+  (route-reloader)
+  "Routes reloaded")
+
+(defn reload-halo
+  "reloads the Halo routes in this Caribou app"
+  [request]
+  (generate-routes)
+  (route-reloader)
+  "Halo reloaded")
 
 (defn reload-models
   "reloads the models in this Caribou app"
   [request]
-  (model/invoke-models))
+  (model/invoke-models)
+  "Models reloaded")
 
 (def halo-routes
-  ; we need a better way to do this so we don't have to wrap each one in check-key
-  (list
-    (GET (str (config/app :halo-prefix) "/" "reload-routes") [] (fn [request] (check-key request reload-routes)))
-    (GET (str (config/app :halo-prefix) "/" "reload-models") [] (fn [request] (check-key request reload-models)))))
+  [["GET" "reload-routes" reload-routes]
+   ["GET" "reload-halo" reload-halo]
+   ["GET" "reload-models" reload-models]])
 
-(defn generate-routes
-  [_route-reloader]
-  (if (config/app-value-eq :halo-enabled "true")
-    (do
-      (dosync
-        (ref-set route-reloader (fn [] (_route-reloader) "Routes reloaded.")))
-      halo-routes)))
+;; =======================
+;; Initialization
+;; =======================
+
+(defn init
+  [reset-handler]
+  (def route-reloader reset-handler)
+  (generate-routes))

@@ -9,7 +9,6 @@
             [clojure.string :as string]
             [compojure.handler :as compojure-handler]
             [caribou.app.controller :as controller]
-            [caribou.app.halo :as halo]
             [caribou.app.template :as template]
             [caribou.app.util :as app-util]
             [caribou.config :as config]
@@ -91,6 +90,12 @@
     (swap! route-funcs assoc fn-key func)
     (swap! caribou-routes assoc fn-key (resolve-method method url func))))
 
+(defn clear-routes
+  "Clears the app's routes. Used by Halo to update the routes."
+  []
+  (swap! route-funcs {})
+  (swap! caribou-routes {}))
+
 (defn default-action 
   "if a page doesn't have a defined action, we just send the params"
   [params]
@@ -99,8 +104,7 @@
 (def built-in-formatter (formatters :basic-date-time))
 
 (defn default-index
-  [& args]
-  (log :routing "Called default-index")
+  [request]
   (format "Welcome to Caribou! Please add some pages, you foolish person.<br /> %s" (unparse built-in-formatter (now))))
 
 ; default route
