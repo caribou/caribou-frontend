@@ -1,11 +1,11 @@
 (ns caribou.app.routing
-  (:use 
+  (:use
         [clj-time.core :only (now)]
         [clj-time.format :only (unparse formatters)]
         [compojure.core :only (routes GET POST PUT DELETE ANY)]
         [ring.middleware file file-info]
         [caribou.debug])
-  (:require 
+  (:require
             [clojure.string :as string]
             [compojure.handler :as compojure-handler]
             [caribou.app.controller :as controller]
@@ -96,7 +96,7 @@
   (swap! route-funcs {})
   (swap! caribou-routes {}))
 
-(defn default-action 
+(defn default-action
   "if a page doesn't have a defined action, we just send the params to the template"
   [params]
   (let [template (params :template)]

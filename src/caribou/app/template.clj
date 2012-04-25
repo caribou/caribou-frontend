@@ -24,6 +24,6 @@
              (alter templates merge {template-key template}))))
         (recur (next fseq))))))
 
-(defn init 
+(defn init
   []
   (load-templates (@config/app :template-dir)))

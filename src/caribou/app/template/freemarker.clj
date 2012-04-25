@@ -19,14 +19,14 @@
   "Gets a Freemarker template from the Configuration"
   [template-name]
   (.getTemplate freemarker-config template-name))
- 
+
 (defn render
   "Process a Freemarker template, returns a String"
   ([template root template-length]
   (let [out (StringWriter. template-length)]
     (.process template (stringify-keys root) out)
     (.toString out)))
- 
+
   ([template root]
     (let [template-length (.length (.toString template))]
       (render template root template-length))))
@@ -34,8 +34,8 @@
 (defn render-wrapper
   "Wraps a template filename in a render"
   [template-name]
-  (fn [root] 
-    ; we put get-template inside the func call because we want freemarker to handle 
+  (fn [root]
+    ; we put get-template inside the func call because we want freemarker to handle
     ; caching/reloading for us
     (let [template (get-template template-name)
           template-length (.length (.toString template))]

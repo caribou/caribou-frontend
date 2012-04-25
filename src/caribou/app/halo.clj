@@ -21,7 +21,7 @@
         req-key (headers "x-halo-key")
         app-key (@config/app :halo-key)]
     (if (= app-key req-key)
-      (do 
+      (do
         (func request))
       {:status 401 :body "Forbidden"})))
 

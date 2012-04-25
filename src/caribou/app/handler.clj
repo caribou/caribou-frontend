@@ -29,14 +29,14 @@
   (reduce (fn [cur [func args]] (apply func cur args))
           handler
           (seq @middleware)))
-    
+
 (defn- pack-routes
   []
   (if (empty? @routing/caribou-routes)
     (routing/add-default-route))
   (apply routes (vals @routing/caribou-routes)))
 
-(defn- init-routes 
+(defn- init-routes
   []
   (-> (pack-routes)
       (wrap-custom-middleware)))
@@ -66,7 +66,7 @@
   (fn [request]
     ((dynamic-handler) request)))
 
-(defn reset-handler 
+(defn reset-handler
   "clears the memoize atom in the metadata for dynamic-handler, which causes it to 'un-memoize'"
   []
   (log :handler "Resetting Handler")
