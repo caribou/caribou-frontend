@@ -17,12 +17,33 @@
         [caribou.app.util :as app-util]))
 
 (declare reset-handler)
+(defonce middleware (atom []))
 
 (defn use-public-wrapper
   [handler]
   (if-let [public-dir (@core-config/app :public-dir)]
     (fn [request] ((wrap-file handler public-dir) request))
     (fn [request] (handler request))))
+
+(defn- wrap-custom-middleware [handler]
+  (reduce (fn [cur [func args]] (apply func cur args))
+          handler
+          (seq @middleware)))
+    
+(defn- pack-routes
+  []
+  (if (empty? @routing/caribou-routes)
+    (routing/add-default-route))
+  (apply routes (vals @routing/caribou-routes)))
+
+(defn- init-routes 
+  []
+  (-> (pack-routes)
+      (wrap-custom-middleware)))
+
+(defn base-handler
+  []
+  (init-routes))
 
 (defn _dynamic-handler
   "calls the dynamic route generation functions and returns a composite handler"
@@ -32,7 +53,7 @@
   (template/init)
   (pages/create-page-routes)
   (halo/init reset-handler)
-  (-> (apply routes (vals @routing/caribou-routes))
+  (-> (base-handler)
       (use-public-wrapper)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))

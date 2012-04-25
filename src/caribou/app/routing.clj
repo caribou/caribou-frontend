@@ -97,9 +97,10 @@
   (swap! caribou-routes {}))
 
 (defn default-action 
-  "if a page doesn't have a defined action, we just send the params"
+  "if a page doesn't have a defined action, we just send the params to the template"
   [params]
-  (assoc params :result (str params)))
+  (let [template (params :template)]
+    (template params)))
 
 (def built-in-formatter (formatters :basic-date-time))
 
@@ -107,5 +108,6 @@
   [request]
   (format "Welcome to Caribou! Please add some pages, you foolish person.<br /> %s" (unparse built-in-formatter (now))))
 
-; default route
-(add-route "GET" "/" default-index)
+(defn add-default-route
+  []
+  (add-route "GET" "/" default-index))
