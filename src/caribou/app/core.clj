@@ -124,11 +124,6 @@
   (controller/load-controllers "app/controllers")
   (def all-routes (invoke-routes)))
 
-(defn init
-  "Initialize page related activities"
-  []
-  (sql/with-connection @config/db (page-init)))
-
 (declare app)
 
 (defn reload-routes
@@ -143,20 +138,4 @@
 (defn init
   []
   (reload-routes @config/db))
-
-;; (defn start
-;;   ([port ssl-port] (start port ssl-port {}))
-;;   ([port ssl-port user-db]
-;;      (let [db (merge @config/db user-db)]
-;;        (reload-routes db)
-;;        (ring/run-jetty (var app) {:port port :join? false :host "127.0.0.1"}))))
-
-;; (defn go []
-;;   (let [port (Integer/parseInt (or (@config/app :pages-port) "22212"))
-;;         ssl-port (Integer/parseInt (or (@config/app :pages-ssl-port) "22242"))]
-;;     (start port ssl-port @config/db)))
-
-;; (defn -main []
-;;   (go))
-
 
