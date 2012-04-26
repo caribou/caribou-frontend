@@ -1,29 +1,27 @@
 (ns caribou.app.handler
-  (:use
-        [compojure.core :only (routes)]
+  (:use [compojure.core :only (routes)]
         caribou.debug
         [ring.middleware.file :only (wrap-file)])
-  (:require
-        [caribou.util :as util]
-        [compojure.handler :as compojure-handler]
-        [caribou.config :as core-config]
-        [caribou.model :as core-model]
-        [caribou.db :as core-db]
-        [caribou.app.halo :as halo]
-        [caribou.app.pages :as pages]
-        [caribou.app.request :as request]
-        [caribou.app.routing :as routing]
-        [caribou.app.template :as template]
-        [caribou.app.util :as app-util]))
+  (:require [caribou.util :as util]
+            [compojure.handler :as compojure-handler]
+            [caribou.config :as core-config]
+            [caribou.model :as core-model]
+            [caribou.db :as core-db]
+            [caribou.app.halo :as halo]
+            [caribou.app.pages :as pages]
+            [caribou.app.request :as request]
+            [caribou.app.routing :as routing]
+            [caribou.app.template :as template]
+            [caribou.app.util :as app-util]))
 
 (declare reset-handler)
 (defonce middleware (atom []))
 
 (defn use-public-wrapper
-  [handler]
-  (if-let [public-dir (@core-config/app :public-dir)]
-    (fn [request] ((wrap-file handler public-dir) request))
-    (fn [request] (handler request))))
+  (fn [handler public-dir]
+    (if public-dir
+      (fn [request] ((wrap-file handler public-dir) request))
+      (fn [request] (handler request))))
 
 (defn- wrap-custom-middleware [handler]
   (reduce (fn [cur [func args]] (apply func cur args))
@@ -54,7 +52,8 @@
   (pages/create-page-routes)
   (halo/init reset-handler)
   (-> (base-handler)
-      (use-public-wrapper)
+      (use-public-wrapper (@core-config/app :public-dir))
+      (use-public-wrapper (@core-config/app :asset-dir))
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
 
