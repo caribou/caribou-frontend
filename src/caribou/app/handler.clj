@@ -18,10 +18,10 @@
 (defonce middleware (atom []))
 
 (defn use-public-wrapper
-  (fn [handler public-dir]
-    (if public-dir
-      (fn [request] ((wrap-file handler public-dir) request))
-      (fn [request] (handler request))))
+  [handler public-dir]
+  (if public-dir
+    (fn [request] ((wrap-file handler public-dir) request))
+    (fn [request] (handler request))))
 
 (defn- wrap-custom-middleware [handler]
   (reduce (fn [cur [func args]] (apply func cur args))
