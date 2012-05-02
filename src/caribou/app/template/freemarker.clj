@@ -1,7 +1,7 @@
 (ns caribou.app.template.freemarker
   (:use   caribou.debug
           [clojure.walk :only (stringify-keys)]))
-(import '(freemarker.template Configuration DefaultObjectWrapper))
+(import '(freemarker.template Configuration DefaultObjectWrapper TemplateMethodModel))
 (import '(freemarker.cache NullCacheStorage))
 (import '(java.io StringWriter File))
 
@@ -33,10 +33,16 @@
 
 (defn render-wrapper
   "Wraps a template filename in a render"
-  [template-name]
+  [template-name helpers]
   (fn [root]
     ; we put get-template inside the func call because we want freemarker to handle
     ; caching/reloading for us
     (let [template (get-template template-name)
-          template-length (.length (.toString template))]
-        (render template root template-length))))
+          template-length (.length (.toString template))
+          merged-root (merge root helpers)]
+        (render template merged-root template-length))))
+
+(defn create-helper
+  [helper]
+  (proxy [TemplateMethodModel] []
+    (exec [args] (apply helper args))))
