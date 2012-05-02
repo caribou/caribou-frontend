@@ -8,7 +8,7 @@
 (declare ^{:dynamic true} *current-locale*)
 (declare load-resources)
 (def locales (atom ()))
-(def resource-map (atom nil))
+(def resource-map (atom {}))
 
 (def resources
   (delay (do (load-resources) resource-map)))
