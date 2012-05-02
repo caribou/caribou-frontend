@@ -10,7 +10,6 @@
                  [hiccup "0.3.6"]
                  [org.clojars.doo/cheshire "2.2.3"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-  :main caribou.app.core
   :ring {:handler caribou.app.core/handler
          :servlet-name "caribou-frontend"
          :init caribou.app.core/init
