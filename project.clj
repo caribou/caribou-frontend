@@ -10,7 +10,12 @@
                  [hiccup "0.3.6"]
                  [org.clojars.doo/cheshire "2.2.3"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+  :main caribou.app.core
   :ring {:handler caribou.app.core/handler
          :servlet-name "caribou-frontend"
          :init caribou.app.core/init
-         :port 33333})
+         :port 33333}
+  :repositories {"snapshots" {:url "http://battlecat:8080/nexus/content/repositories/snapshots" 
+                              :username "deployment" :password "deployment"}
+                 "releases"  {:url "http://battlecat:8080/nexus/content/repositories/releases" 
+                              :username "deployment" :password "deployment"}})
