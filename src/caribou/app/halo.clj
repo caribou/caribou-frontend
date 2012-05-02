@@ -29,12 +29,16 @@
   (let [full-path (str (@config/app :halo-prefix) "/" path)]
     (routing/add-route method full-path (fn [request] (check-key request func)))))
 
+(defn append-route
+  [& args]
+  (swap! halo-routes conj (vec args)))
+
 (defn generate-routes
   []
   (if (and (@config/app :halo-enabled) (@config/app :halo-key))
     (do
       (doall
-        (map make-route halo-routes)))))
+        (map make-route @halo-routes)))))
 
 ;; =======================
 ;; Halo routes
@@ -60,10 +64,10 @@
   (model/invoke-models)
   "Models reloaded")
 
-(def halo-routes
+(def halo-routes (atom
   [["GET" "reload-routes" reload-routes]
    ["GET" "reload-halo" reload-halo]
-   ["GET" "reload-models" reload-models]])
+   ["GET" "reload-models" reload-models]]))
 
 ;; =======================
 ;; Initialization

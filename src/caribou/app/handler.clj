@@ -8,6 +8,8 @@
             [caribou.model :as core-model]
             [caribou.db :as core-db]
             [caribou.app.halo :as halo]
+            [caribou.app.i18n :as i18n]
+            [caribou.app.middleware :as middleware]
             [caribou.app.pages :as pages]
             [caribou.app.request :as request]
             [caribou.app.routing :as routing]
@@ -15,18 +17,12 @@
             [caribou.app.util :as app-util]))
 
 (declare reset-handler)
-(defonce middleware (atom []))
 
 (defn use-public-wrapper
   [handler public-dir]
   (if public-dir
     (fn [request] ((wrap-file handler public-dir) request))
     (fn [request] (handler request))))
-
-(defn- wrap-custom-middleware [handler]
-  (reduce (fn [cur [func args]] (apply func cur args))
-          handler
-          (seq @middleware)))
 
 (defn- pack-routes
   []
@@ -37,7 +33,7 @@
 (defn- init-routes
   []
   (-> (pack-routes)
-      (wrap-custom-middleware)))
+      (middleware/wrap-custom-middleware)))
 
 (defn base-handler
   []
@@ -48,12 +44,14 @@
   []
   (log :handler "Creating handler.")
   (core-model/init)
+  (i18n/init)
   (template/init)
   (pages/create-page-routes)
   (halo/init reset-handler)
   (-> (base-handler)
       (use-public-wrapper (@core-config/app :public-dir))
       (use-public-wrapper (@core-config/app :asset-dir))
+      (request/wrap-request-map)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
 
