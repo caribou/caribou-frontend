@@ -7,6 +7,7 @@
             [caribou.app.template.freemarker :as freemarker]))
 
 (def templates (ref {}))
+(def helpers (atom {}))
 
 (defn load-templates
   "recurse through the view directory and add all the templates that can be found"
@@ -17,12 +18,22 @@
       (let [filename (.toString (first fseq))
             template-name (string/replace filename (str path "/") "")]
         (if (.isFile (first fseq))
-          (let [template (freemarker/render-wrapper template-name)
+          (let [template (freemarker/render-wrapper template-name @helpers)
                 template-key (keyword template-name)]
             (log :template (format "Found template %s" template-name))
             (dosync
              (alter templates merge {template-key template}))))
         (recur (next fseq))))))
+
+(defn create-helper
+  [helper]
+  (cond 
+    (= (@config/app :template-engine) "freemarker") (freemarker/create-helper helper)
+    :else (freemarker/create-helper helper)))
+
+(defn register-helper
+  [helper-name helper]
+  (swap! helpers assoc helper-name (create-helper helper)))
 
 (defn init
   []
