@@ -4,7 +4,7 @@
             [caribou.config :as config]
             [caribou.db :as db]
             [caribou.model :as model]
-            ;; [caribou.app.controller :as controller]
+            [caribou.app.controller :as controller]
             [caribou.app.routing :as routing]
             [caribou.app.template :as template]))
 
@@ -16,19 +16,10 @@
   (fn [params]
     (format "Missing controller or action: %s/%s" controller-key action-key)))
 
-(defn get-controller-action
-  [controller-ns controller-key action-key]
-  ;FIXME is string concatenation idomatic?
-  (if (and controller-key action-key)
-    (let [full-ns-name (str controller-ns "." controller-key)
-          full-ns (symbol full-ns-name)]
-       (require :reload full-ns)
-       (ns-resolve full-ns (symbol action-key)))))
-
 (defn retrieve-controller-action
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
   [controller-key action-key]
-  (let [controller-action (get-controller-action (@config/app :controller-ns) controller-key action-key)
+  (let [controller-action (controller/get-controller-action (@config/app :controller-ns) controller-key action-key)
         action (if (and (not (nil? controller-key)) (nil? controller-action))
                   (create-missing-controller-action controller-key action-key)
                   (if (nil? controller-action)
