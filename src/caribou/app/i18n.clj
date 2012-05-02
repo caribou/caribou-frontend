@@ -1,6 +1,5 @@
 (ns caribou.app.i18n
-  (:use caribou.debug)
-  (:require [caribou.db :as db]
+  (:use caribou.debug) (:require [caribou.db :as db]
             [caribou.config :as config]
             [caribou.app.halo :as halo]
             [caribou.app.middleware :as middleware]
@@ -45,8 +44,12 @@
         first-arg (first args)
         string-args args
         locale (if (contains? locales first-arg) first-arg (get-locale))
-        final-args (if (contains? locales first-arg) (rest string-args) string-args)]
-    (apply format (bundle locale) final-args)))
+        final-args (if (contains? locales first-arg) (rest string-args) string-args)
+        default-locale-string (if (nil? bundle) "" (bundle (get-default-locale)))
+        chosen-locale-string (if (nil? bundle) "" (bundle locale))
+        final-string (or chosen-locale-string default-locale-string)]
+                              
+    (apply format final-string final-args)))
 
 (defn locale-setter
   [f]
