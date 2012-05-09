@@ -1,6 +1,5 @@
 (ns caribou.app.template
-  (:use
-            [caribou.debug])
+  (:use [caribou.debug])
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [caribou.config :as config]
@@ -38,3 +37,5 @@
 (defn init
   []
   (load-templates (@config/app :template-dir)))
+
+

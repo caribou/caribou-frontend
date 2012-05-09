@@ -1,9 +1,11 @@
 (ns caribou.app.template.freemarker
-  (:use   caribou.debug
-          [clojure.walk :only (stringify-keys)]))
-(import '(freemarker.template Configuration DefaultObjectWrapper TemplateMethodModel))
-(import '(freemarker.cache NullCacheStorage))
-(import '(java.io StringWriter File))
+  (:use caribou.debug
+        [clojure.walk :only (stringify-keys)])
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string])
+  (:import [freemarker.template Configuration DefaultObjectWrapper TemplateMethodModel]
+           [freemarker.cache NullCacheStorage]
+           [java.io StringWriter File]))
 
 (def freemarker-config (Configuration.))
 
@@ -46,3 +48,26 @@
   [helper]
   (proxy [TemplateMethodModel] []
     (exec [args] (apply helper args))))
+
+;; (defn load-templates
+;;   "recurse through the view directory and add all the templates that can be found"
+;;   [path]
+;;   (freemarker-init path)
+;;   (loop [fseq (file-seq (io/file path))]
+;;     (if fseq
+;;       (let [filename (.toString (first fseq))
+;;             template-name (string/replace filename (str path "/") "")]
+;;         (if (.isFile (first fseq))
+;;           (let [template (render-wrapper template-name @helpers)
+;;                 template-key (keyword template-name)]
+;;             (log :template (format "Found template %s" template-name))
+;;             (dosync
+;;              (alter templates merge {template-key template}))))
+;;         (recur (next fseq))))))
+
+;; (defn init
+;;   []
+;;   (if-let [freemarker-dir (@config/app :freemarker-dir)]
+;;     (load-templates freemarker-dir)))
+
+

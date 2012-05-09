@@ -10,3 +10,10 @@
           full-ns (symbol full-ns-name)]
        (require :reload full-ns)
        (ns-resolve full-ns (symbol action-key)))))
+
+(defn render
+  [params]
+  (let [template (params :template)]
+    (template params)))
+
+

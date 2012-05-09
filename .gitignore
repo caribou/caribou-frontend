@@ -8,3 +8,5 @@
 /.lein-deps-sum
 /app
 /target
+/config
+/resources/config
