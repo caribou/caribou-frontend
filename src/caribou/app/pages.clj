@@ -36,7 +36,7 @@
               (@template/templates (keyword (page :template)))))]
     (if found-template
       (fn [params]
-        (action (merge params {:template found-template})))
+        (action (merge params {:template found-template :page page})))
       (fn [params] (str "No template by the name " (page :template))))))
 
 (defn create-dev-action

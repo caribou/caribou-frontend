@@ -25,10 +25,6 @@
 
 (defn page-init []
   (model/init)
-  (model/add-hook :page :after_save :reload-routes
-    (fn [env]
-      (reload-routes @config/db)
-      env))
   (controller/load-controllers "app/controllers")
   (def all-routes (invoke-routes)))
 
