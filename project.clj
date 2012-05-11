@@ -7,7 +7,6 @@
                  [ring/ring-core "1.1.0"
                   :exclusions [org.clojure/clojure
                                clj-stacktrace]]
-                 [hiccup "0.3.6"]
                  [org.clojars.doo/cheshire "2.2.3"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :ring {:handler caribou.app.core/handler
