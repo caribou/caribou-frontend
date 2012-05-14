@@ -1,9 +1,10 @@
 (ns caribou.app.template.freemarker
   (:use caribou.debug
-        [clojure.walk :only (stringify-keys)])
+        [caribou.util :only (stringify-keys)])
   (:require [clojure.java.io :as io]
             [clojure.string :as string])
-  (:import [freemarker.template Configuration DefaultObjectWrapper TemplateMethodModel]
+  (:import [freemarker.template Configuration TemplateMethodModel]
+           [freemarker.ext.beans BeansWrapper]
            [freemarker.cache NullCacheStorage]
            [java.io StringWriter File]))
 
@@ -15,7 +16,7 @@
   (doto freemarker-config
     (.setDirectoryForTemplateLoading (File. template-path))
     (.setCacheStorage (NullCacheStorage.))
-    (.setObjectWrapper (DefaultObjectWrapper.))))
+    (.setObjectWrapper (BeansWrapper.))))
 
 (defn get-template
   "Gets a Freemarker template from the Configuration"
