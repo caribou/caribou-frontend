@@ -37,6 +37,7 @@
 
 (defn base-handler
   []
+  (middleware/add-custom-middleware middleware/wrap-xhr-request)
   (init-routes))
 
 (defn _dynamic-handler
