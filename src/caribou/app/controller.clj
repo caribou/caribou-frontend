@@ -15,5 +15,3 @@
   [params]
   (let [template (params :template)]
     (template params)))
-
-
