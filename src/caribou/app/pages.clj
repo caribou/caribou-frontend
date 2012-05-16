@@ -1,6 +1,7 @@
 (ns caribou.app.pages
   (:use [clojure.walk :only (stringify-keys)])
   (:require [clojure.java.jdbc :as sql]
+            [clojure.java.io :as io]
             [caribou.config :as config]
             [caribou.db :as db]
             [caribou.model :as model]
@@ -19,41 +20,20 @@
 (defn retrieve-controller-action
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
   [controller-key action-key]
-  (let [controller-action (controller/get-controller-action (@config/app :controller-ns) controller-key action-key)
-        action (if (and (not (nil? controller-key)) (nil? controller-action))
-                  (create-missing-controller-action controller-key action-key)
-                  (if (nil? controller-action)
-                    routing/default-action
-                    controller-action))]
-    action))
-
-(defn create-action
-  [page template controller-key action-key]
-  (let [action (retrieve-controller-action controller-key action-key)
-        found-template
-        (or template
-            (do
-              (@template/templates (keyword (page :template)))))]
-    (if found-template
-      (fn [params]
-        (action (merge params {:template found-template :page page})))
-      (fn [params] (str "No template by the name " (page :template))))))
-
-(defn create-dev-action
-  "Returns a function to handle a route.  Embeds template
-   and controller reloading to ease development"
-  [page template controller-key action-key]
-  (fn [params]
-    ; We reload templates on every request in dev
-    (template/init)
-    ((create-action page template controller-key action-key) params)))
+  (let [controller-action (controller/get-controller-action (@config/app :controller-ns) controller-key action-key)]
+    (if (and (not (nil? controller-key)) (nil? controller-action))
+      (create-missing-controller-action controller-key action-key)
+      (if (nil? controller-action)
+        routing/default-action
+        controller-action))))
 
 (defn generate-action
   "Depending on the application environment, reload controller files (or not)."
   [page template controller-key action-key]
-  (if (config/app-value-eq :debug true)
-    (create-dev-action page template controller-key action-key)
-    (create-action page template controller-key action-key)))
+  (let [action (retrieve-controller-action controller-key action-key)
+        found-template (template/find-template (or template (page :template)))]
+    (fn [params]
+      (action (merge params {:template found-template :page page})))))
 
 (defn make-route
   [[path action method]]
@@ -69,7 +49,7 @@
         controller-key (page :controller)
         action-key (page :action)
         method-key (page :method)
-        template (@template/templates (keyword (page :template)))
+        template (page :template)
         full (generate-action page template controller-key action-key)]
     (dosync
      (alter actions merge {(keyword (str (page :id))) full}))

@@ -1,12 +1,10 @@
 (ns caribou.app.routing
-  (:use
-        [clj-time.core :only (now)]
+  (:use [clj-time.core :only (now)]
         [clj-time.format :only (unparse formatters)]
         [compojure.core :only (routes GET POST PUT DELETE ANY)]
         [ring.middleware file file-info]
         [caribou.debug])
-  (:require
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [compojure.handler :as compojure-handler]
             [caribou.app.controller :as controller]
             [caribou.app.template :as template]
