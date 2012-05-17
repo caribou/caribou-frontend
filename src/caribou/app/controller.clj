@@ -8,8 +8,11 @@
   (if (and controller-key action-key)
     (let [full-ns-name (str controller-ns "." controller-key)
           full-ns (symbol full-ns-name)]
-       (require :reload full-ns)
-       (ns-resolve full-ns (symbol action-key)))))
+      (try
+        (do
+          (require :reload full-ns)
+          (ns-resolve full-ns (symbol action-key)))
+        (catch Exception e (println "Cannot load namespace " full-ns-name))))))
 
 (defn render
   [params]
