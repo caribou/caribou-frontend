@@ -5,7 +5,7 @@
                  [compojure "1.0.4"]
                  [clj-time "0.3.6"]
                  [antler/stencil "0.2.0"]
-                 [ring/ring-core "1.1.0"
+                 [ring "1.1.0"
                   :exclusions [org.clojure/clojure
                                clj-stacktrace
                                hiccup]]
