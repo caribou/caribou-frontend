@@ -1,7 +1,8 @@
 (ns caribou.app.handler
   (:use [compojure.core :only (routes)]
         caribou.debug
-        [ring.middleware.file :only (wrap-file)])
+        [ring.middleware.file :only (wrap-file)]
+        [ring.middleware.resource :only (wrap-resource)])
   (:require [caribou.util :as util]
             [compojure.handler :as compojure-handler]
             [caribou.config :as core-config]
@@ -21,7 +22,7 @@
 (defn use-public-wrapper
   [handler public-dir]
   (if public-dir
-    (fn [request] ((wrap-file handler public-dir) request))
+    (fn [request] ((wrap-resource handler public-dir) request))
     (fn [request] (handler request))))
 
 (defn- pack-routes
@@ -51,7 +52,7 @@
   (halo/init reset-handler)
   (-> (base-handler)
       (use-public-wrapper (@core-config/app :public-dir))
-      (use-public-wrapper (@core-config/app :asset-dir))
+      ;;(use-public-wrapper (@core-config/app :asset-dir))
       (request/wrap-request-map)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))

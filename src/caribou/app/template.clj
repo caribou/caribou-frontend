@@ -36,6 +36,7 @@
   (let [env (config/environment)]
     (condp = env
       :development (loader/set-cache-policy loader/cache-never)
-      :production (loader/set-cache-policy loader/cache-forever))))
+      :staging     (loader/set-cache-policy loader/cache-forever)
+      :production  (loader/set-cache-policy loader/cache-forever))))
 
 
