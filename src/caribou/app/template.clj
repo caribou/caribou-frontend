@@ -5,7 +5,7 @@
             [caribou.util :as util]
             [caribou.config :as config]
             [stencil.core :as stencil]
-            [stencil.loader :as loader]))
+            [stencil.parser :as parser]))
 
 (def templates (ref {}))
 (def helpers (atom {}))
@@ -35,8 +35,8 @@
   []
   (let [env (config/environment)]
     (condp = env
-      :development (loader/set-cache-policy loader/cache-never)
-      :staging     (loader/set-cache-policy loader/cache-forever)
-      :production  (loader/set-cache-policy loader/cache-forever))))
+      :development (parser/set-cache-policy parser/cache-never)
+      :staging     (parser/set-cache-policy parser/cache-forever)
+      :production  (parser/set-cache-policy parser/cache-forever))))
 
 
