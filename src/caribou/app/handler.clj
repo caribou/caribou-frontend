@@ -4,6 +4,7 @@
         [ring.middleware.file :only (wrap-file)]
         [ring.middleware.resource :only (wrap-resource)])
   (:require [caribou.util :as util]
+            [compojure.route :as route]
             [compojure.handler :as compojure-handler]
             [caribou.config :as core-config]
             [caribou.model :as core-model]
@@ -29,7 +30,8 @@
   []
   (if (empty? @routing/caribou-routes)
     (routing/add-default-route))
-  (apply routes (vals @routing/caribou-routes)))
+  (apply routes
+    (cons (route/files "/" {:root (@core-config/app :asset-dir)}) (vals @routing/caribou-routes))))
 
 (defn- init-routes
   []
@@ -52,7 +54,7 @@
   (halo/init reset-handler)
   (-> (base-handler)
       (use-public-wrapper (@core-config/app :public-dir))
-      ;;(use-public-wrapper (@core-config/app :asset-dir))
+      (use-public-wrapper (@core-config/app :asset-dir))
       (request/wrap-request-map)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
