@@ -52,7 +52,7 @@
   (halo/init reset-handler)
   (-> (base-handler)
       (use-public-wrapper (@core-config/app :public-dir))
-      ;;(use-public-wrapper (@core-config/app :asset-dir))
+      (middleware/wrap-servlet-path-info)
       (request/wrap-request-map)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
