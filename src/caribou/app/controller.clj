@@ -17,5 +17,8 @@
 (defn render
   [params]
   (let [template (params :template)]
-    (template params)))
+    {:status (or (params :status) 200)
+     :headers {"Content-Type" (or (params :content-type) "text/html")}
+     :body (template params)
+     :session (params :session)}))
 
