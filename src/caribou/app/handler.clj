@@ -2,7 +2,8 @@
   (:use [compojure.core :only (routes)]
         caribou.debug
         [ring.middleware.file :only (wrap-file)]
-        [ring.middleware.resource :only (wrap-resource)])
+        [ring.middleware.resource :only (wrap-resource)]
+        [ring.middleware.session :only (wrap-session)])
   (:require [caribou.util :as util]
             [compojure.handler :as compojure-handler]
             [caribou.config :as core-config]
@@ -53,6 +54,7 @@
   (-> (base-handler)
       (use-public-wrapper (@core-config/app :public-dir))
       ;;(use-public-wrapper (@core-config/app :asset-dir))
+      (wrap-session)
       (request/wrap-request-map)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
