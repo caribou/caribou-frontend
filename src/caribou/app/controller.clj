@@ -1,4 +1,5 @@
 (ns caribou.app.controller
+  (:use [cheshire.core :only (generate-string)])
   (:require [clojure.java.io :as io]
             [caribou.util :as util]))
 
@@ -14,11 +15,16 @@
           (ns-resolve full-ns (symbol action-key)))
         (catch Exception e (println "Cannot load namespace " full-ns-name))))))
 
-(defn render
-  [params]
-  (let [template (params :template)]
-    {:status (or (params :status) 200)
-     :headers {"Content-Type" (or (params :content-type) "text/html")}
-     :body (template params)
-     :session (params :session)}))
 
+(defn render
+  [params & [^String response-type]]
+    (let [template (params :template)
+          response { :status (or (:status params) 200)
+                     :session (:session params)
+                     :body (template params)
+                     :headers { "Content-Type" "text/html" }}]
+
+      (condp = response-type
+        "json" (assoc response :body (generate-string (template params))
+                               :headers { "Content-Type" "application/json" })
+        response)))

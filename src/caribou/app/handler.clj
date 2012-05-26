@@ -3,6 +3,7 @@
         caribou.debug
         [ring.middleware.file :only (wrap-file)]
         [ring.middleware.resource :only (wrap-resource)]
+        [ring.middleware.json-params :only (wrap-json-params)]
         [ring.middleware.session :only (wrap-session)])
   (:require [caribou.util :as util]
             [compojure.route :as route]
@@ -57,6 +58,7 @@
       (use-public-wrapper (@core-config/app :public-dir))
       (middleware/wrap-servlet-path-info)
       (request/wrap-request-map)
+      (wrap-json-params)
       (wrap-session)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
