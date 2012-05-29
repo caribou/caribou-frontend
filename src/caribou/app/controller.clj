@@ -25,6 +25,6 @@
                      :headers { "Content-Type" "text/html" }}]
 
       (condp = response-type
-        "json" (assoc response :body (generate-string (template params))
-                               :headers { "Content-Type" "application/json" })
+        :json (assoc response :body (generate-string (template params))
+                              :headers { "Content-Type" "application/json" })
         response)))
