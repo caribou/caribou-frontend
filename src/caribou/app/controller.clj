@@ -14,16 +14,16 @@
           (ns-resolve full-ns (symbol action-key)))
         (catch Exception e (println "Cannot load namespace " full-ns-name))))))
 
+(def content-map
+  {:json "application/json"})
 
 (defn render
-  [params & [^String response-type]]
+  ([content-type params] (render (assoc params :content-type (content-type content-map))))
+  ([params]
     (let [template (params :template)
           response { :status (or (:status params) 200)
                      :session (:session params)
                      :body (template params)
-                     :headers { "Content-Type" "text/html" }}]
-
-      (condp = response-type
-        :json (assoc response :headers { "Content-Type" "application/json" })
+                     :headers { "Content-Type" (or (:content-type params) "text/html") }}]
 
         response)))
