@@ -1,5 +1,4 @@
 (ns caribou.app.controller
-  (:use [cheshire.core :only (generate-string)])
   (:require [clojure.java.io :as io]
             [caribou.util :as util]))
 
@@ -25,6 +24,6 @@
                      :headers { "Content-Type" "text/html" }}]
 
       (condp = response-type
-        :json (assoc response :body (generate-string (template params))
-                              :headers { "Content-Type" "application/json" })
+        :json (assoc response :headers { "Content-Type" "application/json" })
+
         response)))
