@@ -60,7 +60,6 @@
       (middleware/wrap-servlet-path-info)
       (request/wrap-request-map)
       (wrap-json-params)
-      (wrap-session)
       (core-db/wrap-db @core-config/db)
       (compojure-handler/api)))
 

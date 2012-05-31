@@ -4,7 +4,6 @@
 
 (defn get-controller-action
   [controller-ns controller-key action-key]
-  ;FIXME is string concatenation idomatic?
   (if (and controller-key action-key)
     (let [full-ns-name (str controller-ns "." controller-key)
           full-ns (symbol full-ns-name)]
@@ -18,12 +17,24 @@
   {:json "application/json"})
 
 (defn render
-  ([content-type params] (render (assoc params :content-type (content-type content-map))))
+  ([content-type params]
+     (render (assoc params :content-type (content-type content-map))))
   ([params]
-    (let [template (params :template)
-          response { :status (or (:status params) 200)
-                     :session (:session params)
-                     :body (template params)
-                     :headers { "Content-Type" (or (:content-type params) "text/html") }}]
+    (let [template (params :template)]
+      {:status (or (:status params) 200)
+       :session (:session params)
+       :body (template params)
+       :headers {"Content-Type" (or (:content-type params) "text/html")}})))
 
-        response)))
+(defn redirect
+  ([url]
+     (redirect url {}))
+  ([url params]
+     (let [headers (merge (:headers params) {"Location" url})]
+       (merge params {:status 302 :headers headers}))))
+
+(defn cookie
+  [request key]
+  (if-let [cookies (:cookies request)]
+    (if-let [cookie (cookies (name key))]
+      (:value cookie))))

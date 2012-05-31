@@ -9,7 +9,6 @@
           (seq @middleware)))
 
 (defn add-custom-middleware
-  "Add a middleware function to all noir handlers."
   [func & args]
   (swap! middleware conj [func args]))
 
