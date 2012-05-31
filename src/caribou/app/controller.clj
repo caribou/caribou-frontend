@@ -11,7 +11,7 @@
         (do
           (require :reload full-ns)
           (ns-resolve full-ns (symbol action-key)))
-        (catch Exception e (println "Cannot load namespace " full-ns-name))))))
+        (catch Exception e (println "Cannot load namespace" full-ns-name (str e)))))))
 
 (def content-map
   {:json "application/json"})
