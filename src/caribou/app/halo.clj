@@ -26,7 +26,7 @@
 (defn make-route
   [[method path func]]
   (let [full-path (str (@config/app :halo-prefix) "/" path)]
-    (routing/add-route method full-path (fn [request] (check-key request func)))))
+    (routing/add-route (keyword (str "halo-" path)) method full-path (fn [request] (check-key request func)))))
 
 (defn append-route
   [& args]

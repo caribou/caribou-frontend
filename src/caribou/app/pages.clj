@@ -11,6 +11,7 @@
 
 (defonce actions (ref {}))
 (defonce pages (ref ()))
+(defonce page-map (ref {}))
 
 (defn create-missing-controller-action
   [controller-key action-key]
@@ -36,25 +37,25 @@
       (action (merge params {:template found-template :page page})))))
 
 (defn make-route
-  [[path action method]]
-  (let [this-action (actions action)]
-    (routing/add-route method path this-action)))
+  [[path slug method]]
+  (let [action (slug @actions)]
+    (routing/add-route slug method path action)))
 
 (defn match-action-to-template
   "Make a single route for a single page, given its overarching path (above-path)"
   [page above-path]
   (let [page-path (page :path)
         path (str above-path "/" (if page-path (name page-path) ""))
-        page-id (keyword (str (page :id)))
+        page-slug (keyword (or (:slug page) (str (:id page))))
         controller-key (page :controller)
         action-key (page :action)
         method-key (page :method)
         template (page :template)
         full (generate-action page template controller-key action-key)]
     (dosync
-     (alter actions merge {(keyword (str (page :id))) full}))
+     (alter actions merge {page-slug full}))
     (concat
-     [[path page-id method-key]]
+     [[path page-slug method-key]]
      (mapcat #(match-action-to-template % path) (page :children)))))
 
 (defn generate-page-routes
@@ -87,3 +88,7 @@
   ([tree]
      (invoke-pages tree)
      (doall (generate-page-routes @pages))))
+
+(defn reverse-route
+  [slug opts]
+  )
