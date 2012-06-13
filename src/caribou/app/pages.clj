@@ -67,19 +67,23 @@
         indirect (map make-route slashed)]
     (concat direct indirect)))
 
-(defn invoke-pages
-  "Call up the pages and arrange them into a tree."
-  []
-  (let [rows (db/query "select * from page")
-        tree (model/arrange-tree rows)]
-    (dosync
-     (alter pages (fn [a b] b) tree))))
-
-(defn create-page-routes
-  "Invoke pages from the db and generate the routes based on them."
+(defn all-pages
   []
   (if (@config/app :use-database)
     (sql/with-connection @config/db
-      (let [_pages (invoke-pages)
-            generated (doall (generate-page-routes @pages))]
-        generated))))
+      (let [rows (db/query "select * from page")]
+        (model/arrange-tree rows)))
+    []))
+
+(defn invoke-pages
+  "Call up the pages and arrange them into a tree."
+  [tree]
+  (dosync
+   (alter pages (fn [a b] b) tree)))
+
+(defn create-page-routes
+  "Invoke pages from the db and generate the routes based on them."
+  ([] (create-page-routes (all-pages)))
+  ([tree]
+     (invoke-pages tree)
+     (doall (generate-page-routes @pages))))

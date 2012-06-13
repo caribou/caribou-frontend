@@ -7,7 +7,6 @@
             [caribou.config :as config]
             [caribou.model :as model]))
 
-(declare route-reloader)
 (declare halo-routes)
 
 ;; =======================
@@ -36,44 +35,54 @@
 (defn generate-routes
   []
   (if (and (@config/app :halo-enabled) (@config/app :halo-key))
-    (do
-      (doall
-        (map make-route @halo-routes)))))
+    (doall
+     (map make-route @halo-routes))))
+
+(def halo-hooks
+  (ref
+   {:reload-pages pages/create-page-routes
+    :reload-models model/invoke-models
+    :reload-halo generate-routes
+    :halo-reset identity}))
 
 ;; =======================
 ;; Halo routes
 ;; =======================
 
-(defn reload-routes
+(defn reload-pages
   "reloads the Page routes in this Caribou app"
   [request]
-  (pages/create-page-routes)
-  (route-reloader)
+  ((:reload-pages @halo-hooks))
+  ((:halo-reset @halo-hooks))
   "Routes reloaded")
-
-(defn reload-halo
-  "reloads the Halo routes in this Caribou app"
-  [request]
-  (generate-routes)
-  (route-reloader)
-  "Halo reloaded")
 
 (defn reload-models
   "reloads the models in this Caribou app"
   [request]
-  (model/invoke-models)
+  ((:reload-models @halo-hooks))
+  ((:halo-reset @halo-hooks))
   "Models reloaded")
 
-(def halo-routes (atom
-  [["GET" "reload-routes" reload-routes]
-   ["GET" "reload-halo" reload-halo]
-   ["GET" "reload-models" reload-models]]))
+(defn reload-halo
+  "reloads the Halo routes in this Caribou app"
+  [request]
+  ((:reload-halo @halo-hooks))
+  ((:halo-reset @halo-hooks))
+  "Halo reloaded")
+
+(def halo-routes
+  (atom
+   [["GET" "reload-routes" reload-pages]
+    ["GET" "reload-halo" reload-halo]
+    ["GET" "reload-models" reload-models]]))
 
 ;; =======================
 ;; Initialization
 ;; =======================
 
 (defn init
-  [reset-handler]
-  (def route-reloader reset-handler)
-  (generate-routes))
+  ([hooks]
+     (dosync
+      (alter halo-hooks merge hooks))
+     (init))
+  ([] (generate-routes)))

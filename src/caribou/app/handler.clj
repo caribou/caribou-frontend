@@ -34,8 +34,11 @@
   (if (empty? @routing/caribou-routes)
     (routing/add-default-route))
   ;; FIXME this is ugly and tacked on, hit willhite on the back of the head if you see this message
-  (apply routes
-    (cons (route/files "/" {:root (@core-config/app :asset-dir)}) (vals @routing/caribou-routes))))
+  (apply
+   routes
+   (cons
+    (route/files "/" {:root (@core-config/app :asset-dir)})
+    (vals @routing/caribou-routes))))
 
 (defn- init-routes
   []
@@ -50,20 +53,12 @@
 (defn _dynamic-handler
   "calls the dynamic route generation functions and returns a composite handler"
   []
-  (log :handler "Creating handler.")
   (core-model/init)
   (i18n/init)
   (template/init)
-  (pages/create-page-routes)
-  (halo/init reset-handler)
-  (-> (base-handler)
-      (use-public-wrapper (@core-config/app :public-dir))
-      (middleware/wrap-servlet-path-info)
-      (request/wrap-request-map)
-      (wrap-json-params)
-      (wrap-multipart-params)
-      (core-db/wrap-db @core-config/db)
-      (compojure-handler/api)))
+  ((:reload-pages @halo/halo-hooks))
+  (halo/init)
+  (base-handler))
 
 (def dynamic-handler (app-util/memoize-visible-atom _dynamic-handler))
 

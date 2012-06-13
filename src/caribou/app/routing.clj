@@ -104,7 +104,7 @@
 
 (defn default-index
   [request]
-  (format "Welcome to Caribou! Please add some pages, you foolish person.<br /> %s" (unparse built-in-formatter (now))))
+  (format "Welcome to Caribou! Please add some pages.<br /> %s" (unparse built-in-formatter (now))))
 
 (defn add-default-route
   []

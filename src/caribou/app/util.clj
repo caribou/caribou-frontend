@@ -1,6 +1,4 @@
-(ns caribou.app.util
-  (:use
-        [caribou.debug]))
+(ns caribou.app.util)
 
 (defn throwf [msg & args]
   (throw (Exception. (apply format msg args))))
