@@ -58,13 +58,17 @@
      [[path page-slug method-key]]
      (mapcat #(match-action-to-template % path) (page :children)))))
 
+(defn slashify-route
+  [[path slug method]]
+  [(str path "/") (keyword (str (name slug) "-with-slash")) method])
+
 (defn generate-page-routes
   "Given a tree of pages construct and return a list of corresponding routes."
   [pages]
   (let [routes (apply concat (map #(match-action-to-template % "") pages))
         direct (map make-route routes)
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
-        slashed (map #(cons (str (first %) "/") (rest %)) unslashed)
+        slashed (map slashify-route unslashed)
         indirect (map make-route slashed)]
     (concat direct indirect)))
 

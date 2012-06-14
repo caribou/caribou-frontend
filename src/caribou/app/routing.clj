@@ -15,43 +15,6 @@
 (defonce route-funcs (atom {}))
 (defonce caribou-routes (atom {}))
 
-;; (defn- keyword->symbol [namesp kw]
-;;   (symbol namesp (string/upper-case (name kw))))
-
-;; (defn- route->key [action rte]
-;;   (let [action (string/replace (str action) #".*/" "")]
-;;     (str action (-> rte
-;;                     (string/replace #"\." "!dot!")
-;;                     (string/replace #"/" "--")
-;;                     (string/replace #":" ">")
-;;                     (string/replace #"\*" "<")))))
-
-;; (defn- parse-route
-;;   [[{:keys [fn-name] :as result} [cur :as all]] default-action]
-;;   (let [cur
-;;         (if (symbol? cur)
-;;           (try
-;;             (deref (resolve cur))
-;;             (catch Exception e
-;;               (app-util/throwf "Symbol given for route has no value")))
-;;           cur)]
-;;     (when-not (or (vector? cur) (string? cur))
-;;       (app-util/throwf "Routes must either be a string or vector, not a %s" (type cur)))
-;;     (let [[action url]
-;;           (if (vector? cur)
-;;             [(keyword->symbol "compojure.core" (first cur)) (second cur)]
-;;             [default-action cur])
-
-;;           final
-;;           (-> result
-;;               (assoc :fn-name
-;;                 (if fn-name
-;;                   fn-name
-;;                   (symbol (route->key action url))))
-;;               (assoc :url url)
-;;               (assoc :action action))]
-;;       [final (rest all)])))
-
 (defn resolve-method
   [method path func]
   (condp = method
@@ -63,14 +26,9 @@
 
 (defn add-route
   [slug method route func]
+  (log :routing (format "adding route %s -- %s %s" slug route method))
   (swap! route-funcs assoc slug func)
   (swap! caribou-routes assoc slug (resolve-method method route func)))
-
-  ;; (let [[{:keys [action url fn-name]}] (parse-route [{} [route]] 'compojure.core/GET)
-  ;;       fn-key (keyword fn-name)]
-  ;;   (log :routing (format "adding route %s %s, name %s" action url fn-name))
-  ;;   (swap! route-funcs assoc fn-key func)
-  ;;   (swap! caribou-routes assoc fn-key (resolve-method method url func))))
 
 (defn clear-routes
   "Clears the app's routes. Used by Halo to update the routes."
