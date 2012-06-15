@@ -3,6 +3,8 @@
             [caribou.util :as util]))
 
 (defn get-controller-action
+  "Find the function corresponding to the given controller namespace and
+   its name in that namespace"
   [controller-ns controller-key action-key]
   (if (and controller-key action-key)
     (let [full-ns-name (str controller-ns "." controller-key)
@@ -17,6 +19,7 @@
   {:json "application/json"})
 
 (defn render
+  "Render the template corresponding to this page and return a proper response."
   ([content-type params]
      (render (assoc params :content-type (content-type content-map))))
   ([params]
@@ -27,6 +30,7 @@
        :headers {"Content-Type" (or (:content-type params) "text/html")}})))
 
 (defn redirect
+  "Return a response corresponding to a redirect triggered in the user's browser."
   ([url]
      (redirect url {}))
   ([url params]
@@ -34,6 +38,7 @@
        (merge params {:status 302 :headers headers}))))
 
 (defn cookie
+  "Get the value from the given cookie."
   [request key]
   (if-let [cookies (:cookies request)]
     (if-let [cookie (cookies (name key))]

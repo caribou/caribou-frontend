@@ -10,3 +10,4 @@
 /target
 /config
 /resources/config
+/autodoc/**

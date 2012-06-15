@@ -1,4 +1,5 @@
-(ns caribou.app.core
+(ns ^{:skip-wiki true}
+  caribou.app.core
   (:require [caribou.config :as config]
             [caribou.app.handler :as handler]))
 
