@@ -12,6 +12,10 @@
                                hiccup]]
                  [org.clojars.doo/cheshire "2.2.3"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+  :autodoc {:name "Caribou Frontend"
+            :page-title "Caribou Frontend - Documentation"
+            :description
+            "This is a routing and template rendering frontend for Caribou Core."}
   :ring {:handler caribou.app.core/handler
          :servlet-name "caribou-frontend"
          :init caribou.app.core/init
