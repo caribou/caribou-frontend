@@ -1,0 +1,168 @@
+<html>
+  <head>
+    <title>caribou.app.pages - caribou-frontend API documentation</title>
+    <link href="static/favicon.png" rel="icon" />
+    <link href="static/favicon.png" rel="shortcut icon" />
+    <link media="all" type="text/css" href="static/clojure.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/wiki.css" rel="stylesheet" />
+    <link media="all" type="text/css" href="static/internal.css" rel="stylesheet" />
+    <style>.menuWrapper{height: 36px;}</style>
+    <!--[if lte IE 6]>
+    <link rel="stylesheet" href="http://www.wikispaces.com/_/2009051601/s/internal_ie.css" type="text/css" />
+    <![endif]-->
+  </head>
+<!--
+This document was auto-generated from the source by the clojure autodoc system.
+To report errors or ask questions about the overall documentation structure, formatting,
+etc., contact Tom Faulhaber (google mail name: tomfaulhaber).
+For errors in the documentation of a particular namespace, contact the author of that
+namespace.
+-->
+  <body>
+    <div id="AllContentContainer">
+      <div id="Header">
+	<a id="Logo" href="index.html"><img alt="Clojure" height="100" width="100" src="static/clojure-icon.gif" /></a>
+	<h1><a title="page header title" id="page-header" href="index.html">caribou-frontend</a></h1>
+      </div>
+      <div id="leftcolumn"><div style="text-align: center;"></div>
+<div class="menu">
+  <div class="WikiCustomNav WikiElement wiki">
+    <span class="toc-header"><span id="project-name">caribou-frontend</span> <span id="version"></span> API</span><br />
+    <ul>
+      <li><a class="wiki_link" href="index.html">Overview</a></li>
+      <li><a class="wiki_link" href="api-index.html">API Index</a></li>
+    </ul>
+    <div class="NamespaceTOC">
+      <span class="toc-header">Namespaces</span>
+      <ul id="left-sidebar-list">
+        <li><a href="caribou.app.controller-api.html" class="wiki_link">caribou.app.controller</a></li><li><a href="caribou.app.halo-api.html" class="wiki_link">caribou.app.halo</a></li><li><a href="caribou.app.handler-api.html" class="wiki_link">caribou.app.handler</a></li><li><a href="caribou.app.i18n-api.html" class="wiki_link">caribou.app.i18n</a></li><li><a href="caribou.app.middleware-api.html" class="wiki_link">caribou.app.middleware</a></li><li><a href="caribou.app.pages-api.html" class="wiki_link">caribou.app.pages</a></li><li><a href="caribou.app.request-api.html" class="wiki_link">caribou.app.request</a></li><li><a href="caribou.app.routing-api.html" class="wiki_link">caribou.app.routing</a></li><li><a href="caribou.app.template-api.html" class="wiki_link">caribou.app.template</a></li><li><a href="caribou.app.util-api.html" class="wiki_link">caribou.app.util</a></li><li><a href="caribou.app.view-api.html" class="wiki_link">caribou.app.view</a></li>
+      </ul>
+    </div>
+    
+    <a href="http://clojure.org" class="wiki_link">Clojure Home</a>
+  </div>
+</div>
+</div>
+      <div id="rightcolumn">
+	<div id="Content">
+	  <div class="contentBox"><div class="innerContentBox">
+              <div id="content_view" class="wiki wikiPage">
+                <div id="right-sidebar"><div id="toc">
+  <h1 class="nopad">Table of Contents</h1>
+  <div style="margin-left: 1em;" class="toc-section">
+    <a href="#toc0">Overview</a>
+    <div style="margin-left: 1em;" class="toc-entry">
+      <a href="#caribou.app.pages/create-page-routes">create-page-routes</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#caribou.app.pages/generate-action">generate-action</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#caribou.app.pages/generate-page-routes">generate-page-routes</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#caribou.app.pages/invoke-pages">invoke-pages</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#caribou.app.pages/match-action-to-template">match-action-to-template</a>
+    </div><div style="margin-left: 1em;" class="toc-entry">
+      <a href="#caribou.app.pages/retrieve-controller-action">retrieve-controller-action</a>
+    </div>
+    <br />
+  </div>
+</div>
+</div>
+                <div id="content-tag"><h1 id="overview">API for <span id="namespace-name">caribou.app.pages</span>
+  - <span id="header-project">caribou-frontend</span> <span id="header-version"></span>
+  </h1>
+
+<br />Full namespace name: <span id="long-name">caribou.app.pages</span>
+<p></p>
+<h2>Overview</h2>
+<pre id="namespace-docstr"></pre>
+
+
+<br />
+<h2>Public Variables and Functions</h2>
+<div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="caribou.app.pages/create-page-routes">create-page-routes</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (create-page-routes)
+       (create-page-routes tree)
+</pre>
+  <pre id="var-docstr">Invoke pages from the db and generate the routes based on them.</pre>
+  
+  
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="caribou.app.pages/generate-action">generate-action</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (generate-action page template controller-key action-key)
+</pre>
+  <pre id="var-docstr">Depending on the application environment, reload controller files (or not).</pre>
+  
+  
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="caribou.app.pages/generate-page-routes">generate-page-routes</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (generate-page-routes pages)
+</pre>
+  <pre id="var-docstr">Given a tree of pages construct and return a list of corresponding routes.</pre>
+  
+  
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="caribou.app.pages/invoke-pages">invoke-pages</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (invoke-pages tree)
+</pre>
+  <pre id="var-docstr">Call up the pages and arrange them into a tree.</pre>
+  
+  
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="caribou.app.pages/match-action-to-template">match-action-to-template</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (match-action-to-template page above-path)
+</pre>
+  <pre id="var-docstr">Make a single route for a single page, given its overarching path (above-path)</pre>
+  
+  
+  
+</div><div id="var-entry">
+  <br />
+  <hr />
+  <h2 id="caribou.app.pages/retrieve-controller-action">retrieve-controller-action</h2>
+  <span id="var-type">function</span><br />
+  <pre id="var-usage">Usage: (retrieve-controller-action controller-key action-key)
+</pre>
+  <pre id="var-docstr">Given the controller-key and action-key, return the function that is correspondingly defined by a controller.</pre>
+  
+  
+  
+</div>
+
+
+</div>
+              </div>
+            </div>
+          </div>
+	</div>
+	<div id="foot">
+	  <div style="text-align: center;" id="copyright">No copyright info </div>
+	</div>
+      </div>
+      <div id="DesignedBy">Logo &amp; site design by <a title="Visit Tom Hickey's website." href="http://www.tomhickey.com">Tom Hickey</a>.<br />
+      Clojure auto-documentation system by Tom Faulhaber.</div>
+    </div>
+    <!-- /AllContentContainer -->
+  </body>
+
+</html>
