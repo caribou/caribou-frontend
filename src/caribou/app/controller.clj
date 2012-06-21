@@ -16,7 +16,8 @@
         (catch Exception e (println "Cannot load namespace" full-ns-name (str e)))))))
 
 (def content-map
-  {:json "application/json"})
+  {:json "application/json"
+   :iframe/json "text/plain"})
 
 (defn render
   "Render the template corresponding to this page and return a proper response."
