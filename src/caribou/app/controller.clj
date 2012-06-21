@@ -24,7 +24,7 @@
   ([content-type params]
      (render (assoc params :content-type (content-type content-map))))
   ([params]
-    (let [template (params :template)]
+    (let [template (:template params)]
       {:status (or (:status params) 200)
        :session (:session params)
        :body (template params)
