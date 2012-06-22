@@ -20,7 +20,3 @@
          :servlet-name "caribou-frontend"
          :init caribou.app.core/init
          :port 33333})
-  ;; :repositories {"snapshots" {:url "http://battlecat:8080/nexus/content/repositories/snapshots" 
-  ;;                             :username "deployment" :password "deployment"}
-  ;;                "releases"  {:url "http://battlecat:8080/nexus/content/repositories/releases" 
-  ;;                             :username "deployment" :password "deployment"}})
