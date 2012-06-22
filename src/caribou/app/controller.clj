@@ -17,7 +17,7 @@
 
 (def content-map
   {:json "application/json"
-   :iframe/json "text/plain"})
+   :text/plain "text/plain"})
 
 (defn render
   "Render the template corresponding to this page and return a proper response."
