@@ -2,6 +2,11 @@
   (:require [clojure.java.io :as io]
             [caribou.util :as util]))
 
+(def session-defaults (atom {}))
+
+(defn load-namespace
+  [paths ])
+
 (defn get-controller-action
   "Find the function corresponding to the given controller namespace and
    its name in that namespace"
@@ -44,3 +49,13 @@
   (if-let [cookies (:cookies request)]
     (if-let [cookie (cookies (name key))]
       (:value cookie))))
+
+(defn session-key
+  "Define a key that should exist in the session and provide a default
+   function to be called if that key does not exist at render time."
+  [key default]
+  (throw "NOT IMPLEMENTED!"))
+
+(defn session
+  "Return"
+  ([request key]))
