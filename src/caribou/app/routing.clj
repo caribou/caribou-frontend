@@ -26,7 +26,7 @@
 
 (defn add-route
   [slug method route func]
-  (log/debug :routing (format "adding route %s -- %s %s" slug route method))
+  (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
   (swap! route-funcs assoc slug func)
   (swap! caribou-routes assoc slug (resolve-method method route func)))
 
