@@ -1,5 +1,6 @@
 (ns caribou.app.controller
   (:require [clojure.java.io :as io]
+            [caribou.logger :as log]
             [caribou.util :as util]))
 
 (def session-defaults (atom {}))
@@ -18,7 +19,9 @@
         (do
           (require :reload full-ns)
           (ns-resolve full-ns (symbol action-key)))
-        (catch Exception e (println "Cannot load namespace" full-ns-name (str e)))))))
+        (catch Exception e
+          (log/error (str "Cannot load namespace " full-ns-name "\n" e)
+                     :CONTROLLER))))))
 
 (def content-map
   {:json "application/json"
