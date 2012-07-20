@@ -3,10 +3,20 @@
             [caribou.logger :as log]
             [caribou.util :as util]))
 
+(def session-canary
+  "return true from session-canary in order to trigger an exception,
+the arg passed will be the session"
+  (ref (constantly false)))
+
+;; example: throw an exception, print session, and force a stack trace whenever
+;; render is called:
+;;; (dosync (ref-set caribou.app.controller/session-canary identity))
+
+
 (def session-defaults (atom {}))
 
 (defn load-namespace
-  [paths ])
+  [paths])
 
 (defn get-controller-action
   "Find the function corresponding to the given controller namespace and
@@ -32,11 +42,14 @@
   ([content-type params]
      (render (assoc params :content-type (content-type content-map))))
   ([params]
-    (let [template (:template params)]
-      {:status (or (:status params) 200)
-       :session (:session params)
-       :body (template params)
-       :headers {"Content-Type" (or (:content-type params) "text/html")}})))
+     (when-let [condition (@session-canary params)]
+       (throw (Exception.
+               (str "session canary reported an error: " condition))))
+     (let [template (:template params)]
+       {:status (or (:status params) 200)
+        :session (:session params)
+        :body (template params)
+        :headers {"Content-Type" (or (:content-type params) "text/html")}})))
 
 (defn redirect
   "Return a response corresponding to a redirect triggered in the user's browser."
