@@ -36,9 +36,10 @@
   ;; FIXME this is ugly and tacked on, hit willhite on the back of the head if you see this message
   (apply
    routes
-   (cons
+   (conj
+    (into [] (vals @routing/caribou-routes))
     (route/files "/" {:root (@core-config/app :asset-dir)})
-    (vals @routing/caribou-routes))))
+    (route/resources "/"))))
 
 (defn- init-routes
   []
