@@ -2,14 +2,14 @@
   (:use [clj-time.core :only (now)]
         [clj-time.format :only (unparse formatters)]
         [compojure.core :only (routes GET POST PUT DELETE ANY)]
-        [ring.middleware file file-info]
-        [caribou.debug])
+        [ring.middleware file file-info])
   (:require [clojure.string :as string]
             [compojure.handler :as compojure-handler]
             [caribou.app.controller :as controller]
             [caribou.app.template :as template]
             [caribou.app.util :as app-util]
             [caribou.config :as config]
+            [caribou.logger :as log]
             [caribou.util :as util]))
 
 (defonce route-funcs (atom {}))
@@ -26,7 +26,7 @@
 
 (defn add-route
   [slug method route func]
-  (log :routing (format "adding route %s -- %s %s" slug route method))
+  (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
   (swap! route-funcs assoc slug func)
   (swap! caribou-routes assoc slug (resolve-method method route func)))
 
