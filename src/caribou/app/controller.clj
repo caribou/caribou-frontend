@@ -5,7 +5,10 @@
 
 (def session-canary
   "return true from session-canary in order to trigger an exception,
-the arg passed will be the session"
+the arg passed will be the session
+
+we could use set-validator here, but there are many ways to be wrong,
+and only one way to be right"
   (ref (constantly false)))
 
 ;; example: throw an exception, print session, and force a stack trace whenever
