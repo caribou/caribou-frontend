@@ -1,19 +1,30 @@
 (ns caribou.app.controller
   (:require [clojure.java.io :as io]
             [caribou.logger :as log]
-            [caribou.util :as util]))
+            [caribou.util :as util]
+            [caribou.config :as config]))
 
-(def session-canary
-  "return true from session-canary in order to trigger an exception,
-the arg passed will be the session
+(def broken-parameters?
+  "return true from broken-parameters? in order to trigger an exception,
+the arg passed will be the render parameters
 
 we could use set-validator here, but there are many ways to be wrong,
 and only one way to be right"
-  (ref (constantly false)))
+  (ref (if
+           ;; true if debug is enabled, nil otherwise
+           (log/whenlog :debug true)
+         (fn [parameters]
+           (if (and (:session parameters)
+                    (:template parameters))
+             false
+             "error session or template missing"))
+         (constantly false))))
 
-;; example: throw an exception, print session, and force a stack trace whenever
-;; render is called:
-;;; (dosync (ref-set caribou.app.controller/session-canary identity))
+
+
+;; example: throw an exception, print parameters, and force a stack trace
+;; whenever render is called:
+;;; (dosync (ref-set caribou.app.controller/broken-parameters? identity))
 
 
 (def session-defaults (atom {}))
@@ -45,9 +56,9 @@ and only one way to be right"
   ([content-type params]
      (render (assoc params :content-type (content-type content-map))))
   ([params]
-     (when-let [condition (@session-canary params)]
+     (when-let [condition (@broken-parameters? params)]
        (throw (Exception.
-               (str "session canary reported an error: " condition))))
+               (str "@broken-session? reported an error: " condition))))
      (let [template (:template params)]
        {:status (or (:status params) 200)
         :session (:session params)
