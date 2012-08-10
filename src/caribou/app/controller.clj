@@ -12,7 +12,7 @@ we could use set-validator here, but there are many ways to be wrong,
 and only one way to be right"
   (ref (if
            ;; true if debug is enabled, nil otherwise
-           (log/whenlog :debug true)
+           false ;(log/whenlog :debug true)
          (fn [parameters]
            (if (and (:session parameters)
                     (:template parameters))
