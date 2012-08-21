@@ -76,7 +76,7 @@
   []
   (if (@config/app :use-database)
     (sql/with-connection @config/db
-      (let [rows (db/query "select * from page")]
+      (let [rows (db/query "select * from page order by position asc")]
         (model/arrange-tree rows)))
     []))
 
