@@ -2,6 +2,7 @@
   (:use [clojure.walk :only (stringify-keys)])
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
+            [clojure.string :as string]
             [caribou.config :as config]
             [caribou.db :as db]
             [caribou.model :as model]
@@ -94,5 +95,12 @@
      (doall (generate-page-routes @pages))))
 
 (defn reverse-route
+  [routes slug opts]
+  (let [path (get routes (keyword slug))]
+    (reduce
+     #(string/replace-first %1 (str (keyword %2)) (get opts %2))
+     path (keys opts))))
+
+(defn route-for
   [slug opts]
-  )
+  (reverse-route @routing/route-paths slug opts))

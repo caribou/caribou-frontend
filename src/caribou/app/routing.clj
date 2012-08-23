@@ -14,6 +14,7 @@
 
 (defonce route-funcs (atom {}))
 (defonce caribou-routes (atom {}))
+(defonce route-paths (atom {}))
 
 (defn resolve-method
   [method path func]
@@ -28,13 +29,15 @@
   [slug method route func]
   (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
   (swap! route-funcs assoc slug func)
-  (swap! caribou-routes assoc slug (resolve-method method route func)))
+  (swap! caribou-routes assoc slug (resolve-method method route func))
+  (swap! route-paths assoc (keyword slug) route))
 
 (defn clear-routes
   "Clears the app's routes. Used by Halo to update the routes."
   []
   (swap! route-funcs {})
-  (swap! caribou-routes {}))
+  (swap! caribou-routes {})
+  (swap! route-paths {}))
 
 (defn default-action
   "if a page doesn't have a defined action, we just send the params to the template"
