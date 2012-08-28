@@ -1,6 +1,8 @@
 (ns caribou.app.i18n
-  (:use caribou.debug) (:require [caribou.db :as db]
+  (:use caribou.debug)
+  (:require [caribou.db :as db]
             [caribou.config :as config]
+            [caribou.util :as util]
             [caribou.app.halo :as halo]
             [caribou.app.middleware :as middleware]
             [caribou.app.template :as template]))
@@ -22,9 +24,9 @@
 (defn load-resources
   "Loads translations and locales from the DB."
   []
-  (let [translations (db/query "select i.*, l.code from i18n i inner join locale l on (l.id=i.locale_id) order by resource_key")
+  (let [translations (util/query "select i.*, l.code from i18n i inner join locale l on (l.id=i.locale_id) order by resource_key")
         resource-keys (distinct (map #(% :resource_key) translations))]
-    (swap! locales concat (map #(% :code) (db/query "select code from locale")))
+    (swap! locales concat (map #(% :code) (util/query "select code from locale")))
         
     (doseq [resource-key resource-keys]
       (let [key-matches (filter #(= (% :resource_key) resource-key) translations)

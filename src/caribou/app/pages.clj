@@ -4,6 +4,7 @@
             [clojure.java.io :as io]
             [clojure.string :as string]
             [caribou.config :as config]
+            [caribou.util :as util]
             [caribou.db :as db]
             [caribou.model :as model]
             [caribou.app.controller :as controller]
@@ -77,7 +78,7 @@
   []
   (if (@config/app :use-database)
     (sql/with-connection @config/db
-      (let [rows (db/query "select * from page order by position asc")]
+      (let [rows (util/query "select * from page order by position asc")]
         (model/arrange-tree rows)))
     []))
 
