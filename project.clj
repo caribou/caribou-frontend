@@ -4,7 +4,7 @@
                  [antler/caribou-core "0.6.14"]
                  [compojure "1.0.4"]
                  [clj-time "0.3.6"]
-                 [antler/stencil "0.3.2"]
+                 [antler/stencil "0.3.3"]
                  [fuziontech/ring-json-params "0.2.0"]
                  [ring "1.1.0"]
                  [org.clojars.doo/cheshire "2.2.3"]]
