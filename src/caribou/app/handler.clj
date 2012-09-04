@@ -1,5 +1,5 @@
 (ns caribou.app.handler
-  (:use [compojure.core :only (routes)]
+  (:use [compojure.core :only (routes HEAD)]
         caribou.debug
         [ring.middleware.file :only (wrap-file)]
         [ring.middleware.resource :only (wrap-resource)]
@@ -37,7 +37,7 @@
   (apply
    routes
    (conj
-    (into [] (vals @routing/caribou-routes))
+    (into [] (cons (HEAD "/" [] "") (vals @routing/caribou-routes)))
     (route/files "/" {:root (@core-config/app :asset-dir)})
     (route/resources "/"))))
 
