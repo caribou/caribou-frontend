@@ -1,6 +1,5 @@
 (ns caribou.app.halo
-  (:use compojure.core
-        [caribou.debug])
+  (:use caribou.debug)
   (:require [clojure.string :as string]
             [caribou.app.pages :as pages]
             [caribou.app.routing :as routing]
