@@ -37,6 +37,6 @@
     (condp = env
       :development (parser/set-cache-policy parser/cache-never)
       :staging     (parser/set-cache-policy parser/cache-forever)
-      :production  (parser/set-cache-policy parser/cache-forever))))
+      (parser/set-cache-policy parser/cache-forever))))
 
 
