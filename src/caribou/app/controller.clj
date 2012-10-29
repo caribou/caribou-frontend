@@ -60,7 +60,7 @@ and only one way to be right"
      (redirect url {}))
   ([url params]
      (let [headers (merge (:headers params) {"Location" url})]
-       (merge params {:status 302 :headers headers}))))
+       (merge params {:status 302 :headers headers :body ""}))))
 
 (defn cookie
   "Get the value from the given cookie."
