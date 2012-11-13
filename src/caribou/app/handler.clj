@@ -16,6 +16,7 @@
             [caribou.app.i18n :as i18n]
             [caribou.app.middleware :as middleware]
             [caribou.app.pages :as pages]
+            [caribou.app.error :as error]
             [caribou.app.request :as request]
             [caribou.app.routing :as routing]
             [caribou.app.template :as template]
@@ -39,7 +40,8 @@
    (conj
     (into [] (cons (HEAD "/" [] "") (vals @routing/caribou-routes)))
     (route/files "/" {:root (@core-config/app :asset-dir)})
-    (route/resources "/"))))
+    (route/resources "/")
+    (route/not-found #(error/render-error :404 %)))))
 
 (defn- init-routes
   []

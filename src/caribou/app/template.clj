@@ -20,10 +20,19 @@
   (fn [params]
     (stencil/render-file path params)))
 
+(defn path-for-template
+  [path]
+  ; FIXME: this should probably be configurable or able to look in multiple places
+  (util/pathify ["templates" path]))
+
+(defn template-exists?
+  [template-path]
+  (io/resource template-path))
+
 (defn find-template
   [path]
-  (let [template-path (util/pathify ["templates" path])]
-    (if (io/resource template-path)
+  (let [template-path (path-for-template path)]
+    (if (template-exists? template-path)
       (template-closure template-path)
       (default-template path))))
 

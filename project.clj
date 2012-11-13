@@ -1,4 +1,4 @@
-(defproject antler/caribou-frontend "0.7.10"
+(defproject antler/caribou-frontend "0.7.10-SNAPSHOT"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [antler/caribou-core "0.7.10"]
@@ -19,4 +19,5 @@
   :ring {:handler caribou.app.core/handler
          :servlet-name "caribou-frontend"
          :init caribou.app.core/init
-         :port 33333})
+         :port 33333}
+  :resources-path "resources")
