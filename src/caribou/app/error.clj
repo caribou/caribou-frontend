@@ -38,5 +38,5 @@
   [err request]
   (let [err-handler (or (err @error-handlers) default-handler)
         err-template (or (err @error-templates) (find-error-template err))
-        err-request (assoc request :status err :template (template/find-template err-template))]
+        err-request (assoc request :status (read-string (name err)) :template (template/find-template err-template))]
     (err-handler err-request)))
