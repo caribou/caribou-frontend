@@ -1,15 +1,16 @@
-(defproject antler/caribou-frontend "0.7.15"
+(defproject antler/caribou-frontend "0.7.16"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [antler/caribou-core "0.7.12"]
-                 [clj-time "0.4.4"]
-                 [compojure "1.1.3"]
+                 ;[clj-time "0.4.4"]
+                 [compojure "1.1.3" :exclusions [ring/ring-core ring]]
                  [antler/stencil "0.3.5"]
-                 [fuziontech/ring-json-params "0.2.0"]
+                 [fuziontech/ring-json-params "0.2.0" :exclusions [cheshire]]
                  [ring "1.1.6"
                   :exclusions [org.clojure/clojure
                                clj-stacktrace
                                hiccup]]
+                 [ring/ring-core "1.1.6" :exclusions [commons-io]]
                  [org.clojars.doo/cheshire "2.2.3"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :autodoc {:name "Caribou Frontend"
