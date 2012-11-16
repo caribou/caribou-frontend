@@ -16,6 +16,7 @@
 (defonce caribou-route-order (atom []))
 (defonce route-paths (atom {}))
 (defonce error-handlers (atom {}))
+(defonce route-counter (atom 0))
 
 (defn resolve-method
   [method path func]
@@ -29,18 +30,20 @@
 (defn add-route
   [slug method route func]
   (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
-  (swap! caribou-routes assoc slug (resolve-method method route func))
+  (swap! caribou-routes assoc slug [@route-counter (resolve-method method route func)])
+  (swap! route-counter inc)
   (swap! caribou-route-order conj slug)
   (swap! route-paths assoc (keyword slug) route))
 
 (defn ordered-routes
-  [routes route-order]
-  (map #(% routes) route-order))
+  [routes]
+  (into (sorted-map-by (fn [a b] (compare (first (a routes)) (first (b routes))))) routes)) 
 
 (defn clear-routes
   "Clears the app's routes. Used by Halo to update the routes."
   []
   (reset! caribou-routes {})
+  (reset! route-counter 0)
   (reset! caribou-route-order [])
   (reset! route-paths {}))
 
