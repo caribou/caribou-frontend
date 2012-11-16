@@ -38,7 +38,7 @@
   (apply
    routes
    (conj
-    (into [] (cons (HEAD "/" [] "") (routing/ordered-routes @routing/caribou-routes)))
+    (into [] (cons (HEAD "/" [] "") (routing/routes-in-order @routing/caribou-routes)))
     (route/files "/" {:root (@core-config/app :asset-dir)})
     (route/resources "/")
     (route/not-found #(error/render-error :404 %)))))
