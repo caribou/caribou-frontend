@@ -13,6 +13,7 @@
             [caribou.util :as util]))
 
 (defonce caribou-routes (atom {}))
+(defonce caribou-route-order (atom []))
 (defonce route-paths (atom {}))
 (defonce error-handlers (atom {}))
 
@@ -29,13 +30,19 @@
   [slug method route func]
   (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
   (swap! caribou-routes assoc slug (resolve-method method route func))
+  (swap! caribou-route-order conj slug)
   (swap! route-paths assoc (keyword slug) route))
+
+(defn ordered-routes
+  [routes route-order]
+  (map #(% routes) route-order))
 
 (defn clear-routes
   "Clears the app's routes. Used by Halo to update the routes."
   []
-  (swap! caribou-routes {})
-  (swap! route-paths {}))
+  (reset! caribou-routes {})
+  (reset! caribou-route-order [])
+  (reset! route-paths {}))
 
 (defn default-action
   "if a page doesn't have a defined action, we just send the params to the template"
