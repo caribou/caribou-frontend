@@ -41,7 +41,7 @@
     (into [] (cons (HEAD "/" [] "") (routing/routes-in-order @routing/caribou-routes)))
     (route/files "/" {:root (@core-config/app :asset-dir)})
     (route/resources "/")
-    (route/not-found #(error/render-error :404 %)))))
+    (partial error/render-error :404))))
 
 (defn- init-routes
   []
