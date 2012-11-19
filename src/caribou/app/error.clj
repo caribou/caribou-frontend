@@ -19,7 +19,7 @@
 
 (defn default-handler
   [request]
-  (controller/render request))
+  (controller/render (assoc request :content-type "text/html")))
 
 (defn template-for-error
   [err]
