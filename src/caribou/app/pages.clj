@@ -47,7 +47,7 @@
   "Make a single route for a single page, given its overarching path (above-path)"
   [page above-path]
   (let [page-path (page :path)
-        path (str above-path "/" (if page-path (name page-path) ""))
+        path (str above-path (if-not (empty? page-path) (str "/" (name page-path))))
         page-slug (keyword (or (:slug page) (str (:id page))))
         controller-key (page :controller)
         action-key (page :action)
@@ -67,7 +67,8 @@
 (defn generate-page-routes
   "Given a tree of pages construct and return a list of corresponding routes."
   [pages]
-  (let [routes (apply concat (map #(match-action-to-template % "") pages))
+  (let [localization (or (:localize-routes @config/app) "")
+        routes (apply concat (map #(match-action-to-template % localization) pages))
         direct (map make-route routes)
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
         slashed (map slashify-route unslashed)
