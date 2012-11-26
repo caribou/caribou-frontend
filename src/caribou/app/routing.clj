@@ -17,6 +17,7 @@
 (defonce route-paths (atom {}))
 (defonce error-handlers (atom {}))
 (defonce route-counter (atom 0))
+(defonce pre-actions (atom {}))
 
 (defn resolve-method
   [method path func]
@@ -27,13 +28,44 @@
     "DELETE" (DELETE path {params :params} func)
     (ANY path {params :params} func)))
 
+(defn wrap-pre-action
+  [pre-action action]
+  (fn [request]
+    (pre-action action request)))
+
+;; these are backwards because we nest the func in reverse order
+(defn prepend-pre-action
+  [slug pre-action]
+  (swap! pre-actions update-in [(keyword slug)] #(concat % [pre-action])))
+
+(defn append-pre-action
+  [slug pre-action]
+  (swap! pre-actions update-in [(keyword slug)] (partial cons pre-action)))
+
+(defn register-pre-action
+  ([slug pre-action]
+     (append-pre-action slug pre-action))
+  ([place slug pre-action]
+     (condp = (keyword place)
+       :prepend (prepend-pre-action slug pre-action)
+       (append-pre-action slug pre-action))))
+
+(defn wrap-pre-actions
+  [pre-actions func]
+  (loop [pre-actions pre-actions
+         func func]
+    (if (empty? pre-actions)
+      func
+      (recur (rest pre-actions) (wrap-pre-action (first pre-actions) func)))))
+
 (defn add-route
   [slug method route func]
   (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
-  (swap! caribou-routes assoc slug [@route-counter (resolve-method method route func)])
-  (swap! route-counter inc)
-  (swap! caribou-route-order conj slug)
-  (swap! route-paths assoc (keyword slug) route))
+  (let [full-action (wrap-pre-actions (get @pre-actions slug) func)]
+    (swap! caribou-routes assoc slug [@route-counter (resolve-method method route full-action)])
+    (swap! route-counter inc)
+    (swap! caribou-route-order conj slug)
+    (swap! route-paths assoc (keyword slug) route)))
 
 (defn routes-in-order
   [routes]
@@ -46,6 +78,10 @@
   (reset! route-counter 0)
   (reset! caribou-route-order [])
   (reset! route-paths {}))
+
+(defn clear-pre-actions
+  []
+  (reset! pre-actions {}))
 
 (defn default-action
   "if a page doesn't have a defined action, we just send the params to the template"

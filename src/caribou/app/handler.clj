@@ -56,6 +56,7 @@
 (defn _dynamic-handler
   "calls the dynamic route generation functions and returns a composite handler"
   []
+  (core-config/init)
   (core-model/init)
   (i18n/init)
   (template/init)
