@@ -47,7 +47,6 @@
 
 (defn wrap-pre-action
   [pre-action action]
-  (println pre-action action)
   (fn [request]
     (pre-action action request)))
 
@@ -68,7 +67,7 @@
   (let [base (deslash slug)
         relevant-pre-actions (get @pre-actions base)
         full-action (wrap-pre-actions relevant-pre-actions func)]
-    (log/debug (format "adding route %s base %s -- %s %s preaction wtf %s %s" slug base route method full-action func) :routing)
+    (log/debug (format "adding route %s : %s -- %s %s " slug base route method) :routing)
     (swap! caribou-routes assoc slug [@route-counter (resolve-method method route full-action)])
     (swap! route-counter inc)
     (swap! caribou-route-order conj slug)
