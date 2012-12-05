@@ -40,7 +40,7 @@
 
 (defn make-route
   [[path slug method]]
-  (let [action (slug @actions)]
+  (let [action (get @actions (routing/deslash slug))]
     (routing/add-route slug method path action)))
 
 (defn match-action-to-template
@@ -73,7 +73,7 @@
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
         slashed (map slashify-route unslashed)
         indirect (map make-route slashed)]
-    (concat direct indirect)))
+    (concat indirect direct)))
 
 (defn all-pages
   []

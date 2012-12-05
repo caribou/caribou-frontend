@@ -28,11 +28,6 @@
     "DELETE" (DELETE path {params :params} func)
     (ANY path {params :params} func)))
 
-(defn wrap-pre-action
-  [pre-action action]
-  (fn [request]
-    (pre-action action request)))
-
 ;; these are backwards because we nest the func in reverse order
 (defn prepend-pre-action
   [slug pre-action]
@@ -50,6 +45,12 @@
        :prepend (prepend-pre-action slug pre-action)
        (append-pre-action slug pre-action))))
 
+(defn wrap-pre-action
+  [pre-action action]
+  (println pre-action action)
+  (fn [request]
+    (pre-action action request)))
+
 (defn wrap-pre-actions
   [pre-actions func]
   (loop [pre-actions pre-actions
@@ -58,10 +59,16 @@
       func
       (recur (rest pre-actions) (wrap-pre-action (first pre-actions) func)))))
 
+(defn deslash
+  [key]
+  (keyword (or (last (re-find #"(.+)-with-slash" (name key))) key)))
+
 (defn add-route
   [slug method route func]
-  (log/debug (format "adding route %s -- %s %s" slug route method) :routing)
-  (let [full-action (wrap-pre-actions (get @pre-actions slug) func)]
+  (let [base (deslash slug)
+        relevant-pre-actions (get @pre-actions base)
+        full-action (wrap-pre-actions relevant-pre-actions func)]
+    (log/debug (format "adding route %s base %s -- %s %s preaction wtf %s %s" slug base route method full-action func) :routing)
     (swap! caribou-routes assoc slug [@route-counter (resolve-method method route full-action)])
     (swap! route-counter inc)
     (swap! caribou-route-order conj slug)
