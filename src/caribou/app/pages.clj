@@ -3,6 +3,7 @@
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [hiccup.util :as hiccup]
             [caribou.config :as config]
             [caribou.util :as util]
             [caribou.db :as db]
@@ -98,10 +99,20 @@
 
 (defn reverse-route
   [routes slug opts]
-  (let [path (get routes (keyword slug))]
-    (reduce
-     #(string/replace-first %1 (str (keyword %2)) (get opts %2))
-     path (keys opts))))
+  (let [path (get routes (keyword slug))
+        opt-keys (keys opts)
+        route-keys (map read-string (filter #(= (first %) \:)
+                                            (string/split path #"/")))
+        query-keys (remove (into #{} route-keys) opt-keys)
+        base (reduce
+              #(string/replace-first %1 (str (keyword %2)) (get opts %2))
+              path opt-keys)
+        query-item (fn [[k v]] (str (hiccup/url-encode (name k))
+                                    "="
+                                    (hiccup/url-encode v)))
+        query (string/join "&" (map query-item (select-keys opts query-keys)))
+        query (and (seq query) (str "?" query))]
+    (str base query)))
 
 (defn route-for
   [slug opts]
