@@ -3,7 +3,7 @@
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [hiccup.util :as hiccup]
+            [ring.util.codec :as codec]
             [caribou.config :as config]
             [caribou.util :as util]
             [caribou.db :as db]
@@ -107,9 +107,9 @@
         base (reduce
               #(string/replace-first %1 (str (keyword %2)) (get opts %2))
               path opt-keys)
-        query-item (fn [[k v]] (str (hiccup/url-encode (name k))
+        query-item (fn [[k v]] (str (codec/url-encode (name k))
                                     "="
-                                    (hiccup/url-encode v)))
+                                    (codec/url-encode v)))
         query (string/join "&" (map query-item (select-keys opts query-keys)))
         query (and (seq query) (str "?" query))]
     (str base query)))
