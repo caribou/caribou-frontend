@@ -97,17 +97,33 @@
      (invoke-pages tree)
      (doall (generate-page-routes @pages))))
 
-(defn reverse-route
-  [routes slug opts]
-  (let [path (get routes (keyword slug)
-                  ;; throw the exception if the route for the slug is not found
-                  (lazy-seq
-                    (throw (new Exception
-                                (str "route for " slug " not found")))))
+(defn get-path
+  [routes slug]
+  (get routes (keyword slug)
+       ;; throw the exception if the route for the slug is not found
+       (lazy-seq
+         (throw (new Exception
+                     (str "route for " slug " not found"))))))
+
+(defn sort-route-opts
+  [slug opts]
+  (let [path (get-path @routing/route-paths slug opts)
         opt-keys (keys opts)
         route-keys (map read-string (filter #(= (first %) \:)
                                             (string/split path #"/")))
-        query-keys (remove (into #{} route-keys) opt-keys)
+        query-keys (remove (into #{} route-keys) opt-keys)]
+    {:path path
+     :route (select-keys opts route-keys)
+     :query (select-keys opts query-keys)}))
+
+(defn reverse-route
+  [routes slug opts]
+  (let [{path :path
+         route :route
+         query :query} (sort-route-opts slug opts)
+        route-keys (keys route)
+        query-keys (keys query)
+        opt-keys (keys opts)
         base (reduce
               #(string/replace-first %1 (str (keyword %2)) (get opts %2))
               path opt-keys)
