@@ -102,7 +102,8 @@
   (let [path (get routes (keyword slug)
                   ;; throw the exception if the route for the slug is not found
                   (lazy-seq
-                    (throw (new Exception "route for " slug " not found"))))
+                    (throw (new Exception
+                                (str "route for " slug " not found")))))
         opt-keys (keys opts)
         route-keys (map read-string (filter #(= (first %) \:)
                                             (string/split path #"/")))
