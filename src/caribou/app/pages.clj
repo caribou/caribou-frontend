@@ -99,15 +99,13 @@
 
 (defn get-path
   [routes slug]
-  (get routes (keyword slug)
-       ;; throw the exception if the route for the slug is not found
-       (lazy-seq
-         (throw (new Exception
-                     (str "route for " slug " not found"))))))
+  (or (get routes (keyword slug))
+      (throw (new Exception
+                  (str "route for " slug " not found")))))
 
 (defn sort-route-opts
   [slug opts]
-  (let [path (get-path @routing/route-paths slug opts)
+  (let [path (get-path @routing/route-paths slug)
         opt-keys (keys opts)
         route-keys (map read-string (filter #(= (first %) \:)
                                             (string/split path #"/")))
@@ -115,6 +113,14 @@
     {:path path
      :route (select-keys opts route-keys)
      :query (select-keys opts query-keys)}))
+
+(defn select-route
+  [slug opts]
+  (:route (sort-route-opts slug opts)))
+
+(defn select-query
+  [slug opts]
+  (:query (sort-route-opts slug opts)))
 
 (defn reverse-route
   [routes slug opts]
