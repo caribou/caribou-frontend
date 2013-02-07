@@ -3,7 +3,9 @@
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [clojure.data.codec.base64 :as base64]
             [ring.util.codec :as codec]
+            [ring.middleware.basic-authentication :only (wrap-basic-authentication)]
             [caribou.config :as config]
             [caribou.util :as util]
             [caribou.db :as db]
@@ -18,7 +20,7 @@
 
 (defn create-missing-controller-action
   [controller-key action-key]
-  (fn [params]
+  (fn [request]
     (format "Missing controller or action: %s/%s" controller-key action-key)))
 
 (defn retrieve-controller-action
@@ -31,35 +33,92 @@
         routing/default-action
         controller-action))))
 
+(defn- byte-transform
+  [direction-fn string]
+  (try
+    (reduce str (map char (direction-fn (.getBytes string))))
+    (catch Exception _)))
+
+(defn- encode-base64
+  [^String string]
+  (byte-transform base64/encode string))
+
+(defn- decode-base64
+  [^String string]
+  (byte-transform base64/decode string))
+
+(defn basic-authentication
+  ([app request authenticate]
+     (basic-authentication app request authenticate {} nil))
+  ([app request authenticate denied-response]
+     (basic-authentication app request authenticate denied-response nil))
+  ([app request authenticate denied-response realm]
+     (let [auth (get (:headers request) "authorization")
+           cred (and auth (decode-base64 (last (re-find #"^Basic (.*)$" auth))))
+           [user pass] (and cred (string/split (str cred) #":"))]
+       (if-let [token (and cred (authenticate (str user) (str pass)))]
+         (app (assoc request :basic-authentication token))
+         (let [response (merge {:headers {"Content-Type" "text/plain"} :body "access denied"} denied-response)
+               realm (or realm "restricted area")]
+           (assoc response
+             :status  401
+             :headers (merge (:headers response)
+                             {"WWW-Authenticate" (format "Basic realm=\"%s\"" realm)})))))))
+
+(defn generate-core-action
+  [action template page]
+  (fn [request]
+    (action (merge request {:template template :page page}))))
+
+(defn generate-protection
+  [protection]
+  (fn [user pass]
+    (and (= user (:username protection) (:password protection)))))
+
+(defn generate-protected-action
+  [action template page protection]
+  (let [inner (generate-core-action action template page)
+        auth-protection (generate-protection protection)]
+    (fn [request]
+      (basic-authentication inner request auth-protection))))
+
 (defn generate-action
   "Depending on the application environment, reload controller files (or not)."
-  [page template controller-key action-key]
+  [page template controller-key action-key protection]
   (let [action (retrieve-controller-action controller-key action-key)
         found-template (template/find-template (or template (page :template)))]
-    (fn [params]
-      (action (merge params {:template found-template :page page})))))
+    (if (empty? protection)
+      (generate-core-action action found-template page)
+      (generate-protected-action action found-template page protection))))
 
 (defn make-route
   [[path slug method]]
   (let [action (get @actions (routing/deslash slug))]
     (routing/add-route slug method path action)))
 
+(defn divine-protection
+  [page protection]
+  (if (:protected page)
+    (select-keys page [:username :password])
+    protection))
+
 (defn match-action-to-template
   "Make a single route for a single page, given its overarching path (above-path)"
-  [page above-path]
-  (let [page-path (page :path)
+  [page above-path protection]
+  (let [page-path (:path page)
         path (str above-path (if-not (empty? page-path) (str "/" (name page-path))))
         page-slug (keyword (or (:slug page) (str (:id page))))
-        controller-key (page :controller)
-        action-key (page :action)
-        method-key (page :method)
-        template (page :template)
-        full (generate-action page template controller-key action-key)]
+        controller-key (:controller page)
+        action-key (:action page)
+        method-key (:method page)
+        template (:template page)
+        protection (divine-protection page protection)
+        full (generate-action page template controller-key action-key protection)]
     (dosync
      (alter actions merge {page-slug full}))
     (concat
      [[path page-slug method-key]]
-     (mapcat #(match-action-to-template % path) (page :children)))))
+     (mapcat #(match-action-to-template % path protection) (:children page)))))
 
 (defn slashify-route
   [[path slug method]]
@@ -69,7 +128,7 @@
   "Given a tree of pages construct and return a list of corresponding routes."
   [pages]
   (let [localization (or (:localize-routes @config/app) "")
-        routes (apply concat (map #(match-action-to-template % localization) pages))
+        routes (apply concat (map #(match-action-to-template % localization nil) pages))
         direct (map make-route routes)
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
         slashed (map slashify-route unslashed)
