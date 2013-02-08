@@ -21,20 +21,26 @@ and only one way to be right"
 (defn load-namespace
   [paths])
 
+(defn get-controller-namespace
+  [controller-ns controller-key]
+  (if controller-key
+    (let [full-controller-ns-name (str controller-ns "." controller-key)
+          full-controller-ns (symbol full-controller-ns-name)]
+      (try
+        (do
+          (require :reload full-controller-ns)
+          (find-ns full-controller-ns))
+        (catch Exception e
+          (log/error (str "Cannot load namespace " full-controller-ns-name "\n" e) :CONTROLLER)
+          ; log/error returns a weird list
+          nil)))))
+
 (defn get-controller-action
   "Find the function corresponding to the given controller namespace and
    its name in that namespace"
-  [controller-ns controller-key action-key]
-  (if (and controller-key action-key)
-    (let [full-ns-name (str controller-ns "." controller-key)
-          full-ns (symbol full-ns-name)]
-      (try
-        (do
-          (require :reload full-ns)
-          (ns-resolve full-ns (symbol action-key)))
-        (catch Exception e
-          (log/error (str "Cannot load namespace " full-ns-name "\n" e)
-                     :CONTROLLER))))))
+  [controller-ns action-key]
+  (if action-key
+    (ns-resolve controller-ns (symbol action-key))))
 
 (def content-map
   {:json "application/json"

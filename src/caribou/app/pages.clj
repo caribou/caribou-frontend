@@ -16,35 +16,40 @@
 (defonce pages (ref ()))
 (defonce page-map (ref {}))
 
-(defn create-missing-controller-action
-  [controller-key action-key]
-  (fn [params]
-    (format "Missing controller or action: %s/%s" controller-key action-key)))
-
 (defn retrieve-controller-action
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
   [controller-key action-key]
-  (let [controller-action (controller/get-controller-action (@config/app :controller-ns) controller-key action-key)]
-    (if (and (not (nil? controller-key)) (nil? controller-action))
-      (create-missing-controller-action controller-key action-key)
-      (if (nil? controller-action)
-        routing/default-action
-        controller-action))))
+  (if-let [controller-namespace (controller/get-controller-namespace (-> @config/app :controller :namespace) controller-key)]
+    (let [controller-action (controller/get-controller-action controller-namespace action-key)]
+      (if controller-action
+        (if (nil? controller-action)
+          routing/default-action
+          controller-action)
+        (fn [params]
+          (format "Missing controller action: %s/%s" controller-key action-key))))
+    (fn [params]
+      (format "Missing controller: %s" controller-key))))
 
 (defn generate-action
-  "Depending on the application environment, reload controller files (or not)."
+  "Return a handler that can be configured to reload controller namespaces"
   [page template controller-key action-key]
-  (let [action (retrieve-controller-action controller-key action-key)
-        found-template (template/find-template (or template (page :template)))]
-    (fn [params]
-      (action (merge params {:template found-template :page page})))))
+  (let [found-template (template/find-template (or template (page :template)))]
+    (if (-> @config/app :controller :reload)
+      ; if we want controller reloading, we resolve the controller action within the 
+      ; fn, so it gets reloaded every time
+      (fn [params]
+        (let [action (retrieve-controller-action controller-key action-key)]
+          (action (merge params {:template found-template :page page}))))
+      (let [action (retrieve-controller-action controller-key action-key)]
+        (fn [params]
+          (action (merge params {:template found-template :page page})))))))
 
 (defn make-route
   [[path slug method]]
   (let [action (get @actions (routing/deslash slug))]
     (routing/add-route slug method path action)))
 
-(defn match-action-to-template
+(defn bind-action
   "Make a single route for a single page, given its overarching path (above-path)"
   [page above-path]
   (let [page-path (page :path)
@@ -59,7 +64,7 @@
      (alter actions merge {page-slug full}))
     (concat
      [[path page-slug method-key]]
-     (mapcat #(match-action-to-template % path) (page :children)))))
+     (mapcat #(bind-action % path) (page :children)))))
 
 (defn slashify-route
   [[path slug method]]
@@ -69,7 +74,7 @@
   "Given a tree of pages construct and return a list of corresponding routes."
   [pages]
   (let [localization (or (:localize-routes @config/app) "")
-        routes (apply concat (map #(match-action-to-template % localization) pages))
+        routes (apply concat (map #(bind-action % localization) pages))
         direct (map make-route routes)
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
         slashed (map slashify-route unslashed)
