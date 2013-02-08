@@ -3,13 +3,13 @@
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
             [clojure.string :as string]
-            [clojure.data.codec.base64 :as base64]
             [ring.util.codec :as codec]
             [ring.middleware.basic-authentication :only (wrap-basic-authentication)]
             [caribou.config :as config]
             [caribou.util :as util]
             [caribou.db :as db]
             [caribou.model :as model]
+            [caribou.app.auth :as auth]
             [caribou.app.controller :as controller]
             [caribou.app.routing :as routing]
             [caribou.app.template :as template]))
@@ -33,38 +33,6 @@
         routing/default-action
         controller-action))))
 
-(defn- byte-transform
-  [direction-fn string]
-  (try
-    (reduce str (map char (direction-fn (.getBytes string))))
-    (catch Exception _)))
-
-(defn- encode-base64
-  [^String string]
-  (byte-transform base64/encode string))
-
-(defn- decode-base64
-  [^String string]
-  (byte-transform base64/decode string))
-
-(defn basic-authentication
-  ([app request authenticate]
-     (basic-authentication app request authenticate {} nil))
-  ([app request authenticate denied-response]
-     (basic-authentication app request authenticate denied-response nil))
-  ([app request authenticate denied-response realm]
-     (let [auth (get (:headers request) "authorization")
-           cred (and auth (decode-base64 (last (re-find #"^Basic (.*)$" auth))))
-           [user pass] (and cred (string/split (str cred) #":"))]
-       (if-let [token (and cred (authenticate (str user) (str pass)))]
-         (app (assoc request :basic-authentication token))
-         (let [response (merge {:headers {"Content-Type" "text/plain"} :body "access denied"} denied-response)
-               realm (or realm "restricted area")]
-           (assoc response
-             :status  401
-             :headers (merge (:headers response)
-                             {"WWW-Authenticate" (format "Basic realm=\"%s\"" realm)})))))))
-
 (defn generate-core-action
   [action template page]
   (fn [request]
@@ -80,7 +48,7 @@
   (let [inner (generate-core-action action template page)
         auth-protection (generate-protection protection)]
     (fn [request]
-      (basic-authentication inner request auth-protection))))
+      (auth/basic-authentication inner request auth-protection))))
 
 (defn generate-action
   "Depending on the application environment, reload controller files (or not)."

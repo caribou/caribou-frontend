@@ -34,7 +34,6 @@
   []
   (if (empty? @routing/caribou-routes)
     (routing/add-default-route))
-  ;; FIXME this is ugly and tacked on, hit willhite on the back of the head if you see this message
   (apply
    routes
    (conj

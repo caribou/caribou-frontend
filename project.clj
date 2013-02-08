@@ -11,6 +11,8 @@
                                clj-stacktrace
                                hiccup]]
                  [ring/ring-core "1.1.6" :exclusions [commons-io]]
+                 [ring-basic-authentication "1.0.1"]
+                 [clj-stacktrace "0.2.5"]
                  [hiccup "1.0.2"]
                  [org.clojars.doo/cheshire "2.2.3"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
