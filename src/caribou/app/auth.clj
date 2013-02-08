@@ -1,6 +1,7 @@
 (ns caribou.app.auth
   (:require [clojure.string :as string]
-            [clojure.data.codec.base64 :as base64]))
+            [clojure.data.codec.base64 :as base64]
+            [caribou.auth :as auth]))
 
 (defn- byte-transform
   [direction-fn string]
@@ -33,3 +34,10 @@
              :status  401
              :headers (merge (:headers response)
                              {"WWW-Authenticate" (format "Basic realm=\"%s\"" realm)})))))))
+
+(defn enact-protection
+  [protection]
+  (fn [user pass]
+    (and (= user (:username protection))
+         (auth/check-password pass (:password protection)))))
+

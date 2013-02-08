@@ -26,38 +26,46 @@
 (defn retrieve-controller-action
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
   [controller-key action-key]
-  (let [controller-action (controller/get-controller-action (@config/app :controller-ns) controller-key action-key)]
-    (if (and (not (nil? controller-key)) (nil? controller-action))
-      (create-missing-controller-action controller-key action-key)
-      (if (nil? controller-action)
-        routing/default-action
-        controller-action))))
+  (if-let [controller-namespace (controller/get-controller-namespace (-> @config/app :controller :namespace) controller-key)]
+    (let [controller-action (controller/get-controller-action controller-namespace action-key)]
+      (if controller-action
+        (if (nil? controller-action)
+          routing/default-action
+          controller-action)
+        (fn [request]
+          (format "Missing controller action: %s/%s" controller-key action-key))))
+    (fn [request]
+      (format "Missing controller: %s" controller-key))))
 
 (defn generate-core-action
-  [action template page]
-  (fn [request]
-    (action (merge request {:template template :page page}))))
-
-(defn generate-protection
-  [protection]
-  (fn [user pass]
-    (and (= user (:username protection) (:password protection)))))
-
-(defn generate-protected-action
-  [action template page protection]
-  (let [inner (generate-core-action action template page)
-        auth-protection (generate-protection protection)]
+  [controller-key action-key template page]
+  (let [action (retrieve-controller-action controller-key action-key)]
     (fn [request]
-      (auth/basic-authentication inner request auth-protection))))
+      (action (merge request {:template template :page page})))))
+
+(defn generate-reloading-action
+  [controller-key action-key template page]
+  (fn [request]
+    (let [action (retrieve-controller-action controller-key action-key)]
+      (action (merge request {:template template :page page})))))
+
+(defn protect-action
+  [action protection]
+  (let [auth-protection (auth/enact-protection protection)]
+    (fn [request]
+      (auth/basic-authentication action request auth-protection))))
 
 (defn generate-action
-  "Depending on the application environment, reload controller files (or not)."
+  "Return a handler that can be configured to reload controller namespaces"
   [page template controller-key action-key protection]
   (let [action (retrieve-controller-action controller-key action-key)
-        found-template (template/find-template (or template (page :template)))]
+        found-template (template/find-template (or template (page :template)))
+        generated (if (-> @config/app :controller :reload)
+                    (generate-reloading-action controller-key action-key found-template page)
+                    (generate-core-action controller-key action-key found-template page))]
     (if (empty? protection)
-      (generate-core-action action found-template page)
-      (generate-protected-action action found-template page protection))))
+      generated
+      (protect-action generated protection))))
 
 (defn make-route
   [[path slug method]]
@@ -70,7 +78,7 @@
     (select-keys page [:username :password])
     protection))
 
-(defn match-action-to-template
+(defn bind-action
   "Make a single route for a single page, given its overarching path (above-path)"
   [page above-path protection]
   (let [page-path (:path page)
@@ -86,7 +94,7 @@
      (alter actions merge {page-slug full}))
     (concat
      [[path page-slug method-key]]
-     (mapcat #(match-action-to-template % path protection) (:children page)))))
+     (mapcat #(bind-action % path protection) (:children page)))))
 
 (defn slashify-route
   [[path slug method]]
@@ -96,7 +104,7 @@
   "Given a tree of pages construct and return a list of corresponding routes."
   [pages]
   (let [localization (or (:localize-routes @config/app) "")
-        routes (apply concat (map #(match-action-to-template % localization nil) pages))
+        routes (apply concat (map #(bind-action % localization nil) pages))
         direct (map make-route routes)
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
         slashed (map slashify-route unslashed)
