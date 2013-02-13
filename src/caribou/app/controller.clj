@@ -55,6 +55,8 @@ and only one way to be right"
        (throw (Exception.
                (str "session canary reported an error: " condition))))
      (let [template (:template params)]
+       (when-not template
+         (throw (Exception. "no template provided to render")))
        {:status (or (:status params) 200)
         :session (:session params)
         :body (template params)
