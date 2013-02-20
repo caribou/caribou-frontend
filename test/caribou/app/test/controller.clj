@@ -39,4 +39,3 @@
       (is (= params (get provided :body)))
       (is (= "whatever/whocares"
              (-> provided :headers (get "Content-Type")))))))
-
