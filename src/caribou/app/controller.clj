@@ -51,9 +51,9 @@ and only one way to be right"
   ([content-type params]
      (render (assoc params :content-type (content-type content-map))))
   ([params]
-     (when-let [condition (@session-canary params)]
-       (throw (Exception.
-               (str "session canary reported an error: " condition))))
+     ;; (when-let [condition (@session-canary params)]
+     ;;   (throw (Exception.
+     ;;           (str "session canary reported an error: " condition))))
      (let [template (:template params)]
        (when-not template
          (throw (Exception. "no template provided to render")))
