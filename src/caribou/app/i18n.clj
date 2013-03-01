@@ -1,5 +1,4 @@
 (ns caribou.app.i18n
-  (:use caribou.debug)
   (:require [caribou.db :as db]
             [caribou.config :as config]
             [caribou.util :as util]

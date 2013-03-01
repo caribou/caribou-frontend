@@ -1,6 +1,5 @@
 (ns caribou.app.template.freemarker
-  (:use caribou.debug
-        [caribou.util :only (stringify-keys)])
+  (:use [caribou.util :only (stringify-keys)])
   (:require [clojure.java.io :as io]
             [clojure.string :as string])
   (:import [freemarker.template Configuration TemplateMethodModel]

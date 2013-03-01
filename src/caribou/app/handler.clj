@@ -1,6 +1,5 @@
 (ns caribou.app.handler
   (:use [compojure.core :only (routes HEAD)]
-        caribou.debug
         [ring.middleware.file :only (wrap-file)]
         [ring.middleware.resource :only (wrap-resource)]
         [ring.middleware.json-params :only (wrap-json-params)]
@@ -11,6 +10,7 @@
             [compojure.handler :as compojure-handler]
             [caribou.config :as core-config]
             [caribou.model :as core-model]
+            [caribou.debug :as debug]
             [caribou.db :as core-db]
             [caribou.app.halo :as halo]
             [caribou.app.i18n :as i18n]
@@ -74,6 +74,6 @@
 (defn reset-handler
   "clears the memoize atom in the metadata for dynamic-handler, which causes it to 'un-memoize'"
   []
-  (log :handler "Resetting Handler")
+  (debug/log :handler "Resetting Handler")
   (routing/clear-routes)
   (app-util/memoize-reset dynamic-handler))
