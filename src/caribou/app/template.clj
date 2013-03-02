@@ -41,10 +41,10 @@
 
 (defn init
   []
-  (let [env (config/environment)]
-    (condp = env
-      :development (parser/set-cache-policy parser/cache-never)
-      :staging     (parser/set-cache-policy parser/cache-forever)
+  (let [cache-strategy (get @config/app :cache-templates)]
+    (condp = cache-strategy
+      :never (parser/set-cache-policy parser/cache-never)
+      :always (parser/set-cache-policy parser/cache-forever)
       (parser/set-cache-policy parser/cache-forever))))
 
 

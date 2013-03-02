@@ -1,7 +1,5 @@
 (ns caribou.app.request)
 
-;; Stolen from noir as a binding example (not currently used)
-
 (declare ^{:dynamic true} *request*)
 
 (defn ring-request
