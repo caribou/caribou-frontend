@@ -1,5 +1,4 @@
 (ns caribou.app.template
-  (:use [caribou.debug])
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [caribou.util :as util]
