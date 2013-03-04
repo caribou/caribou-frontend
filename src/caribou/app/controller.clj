@@ -66,12 +66,13 @@ and only one way to be right"
        (throw (Exception.
                (str "session canary reported an error: " condition))))
      (let [template (or (:template params) default-template)
-           content-type (:content-type params)
+           content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html")
+           headers (merge (or (:headers params) {}) {"Content-Type" content-type})
            status (:status params)
            session (:session params)
            response {:status (or status 200)
                      :body (template params)
-                     :headers {"Content-Type" (or content-type "text/html")}}]
+                     :headers headers}]
        (if (contains? params :session)
          (assoc response :session session)
          response))))
