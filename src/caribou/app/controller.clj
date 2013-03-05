@@ -1,5 +1,6 @@
 (ns caribou.app.controller
   (:require [clojure.java.io :as io]
+            [cheshire.core :as json]
             [caribou.logger :as log]
             [caribou.util :as util]))
 
@@ -46,21 +47,35 @@ and only one way to be right"
   {:json "application/json"
    :text/plain "text/plain"})
 
+(defn default-template
+  [params]
+  (str params))
+
+(defn json-template
+  [params]
+  (json/generate-string (dissoc params :content-type :template :session :status)))
+
 (defn render
   "Render the template corresponding to this page and return a proper response."
   ([content-type params]
-     (render (assoc params :content-type (content-type content-map))))
+     (render (assoc params
+               :content-type (content-type content-map)
+               :template json-template)))
   ([params]
      (when-let [condition (@session-canary params)]
        (throw (Exception.
                (str "session canary reported an error: " condition))))
-     (let [template (:template params)]
-       (when-not template
-         (throw (Exception. "no template provided to render")))
-       {:status (or (:status params) 200)
-        :session (:session params)
-        :body (template params)
-        :headers {"Content-Type" (or (:content-type params) "text/html")}})))
+     (let [template (or (:template params) default-template)
+           content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html")
+           headers (merge (or (:headers params) {}) {"Content-Type" content-type})
+           status (:status params)
+           session (:session params)
+           response {:status (or status 200)
+                     :body (template params)
+                     :headers headers}]
+       (if (contains? params :session)
+         (assoc response :session session)
+         response))))
 
 (defn redirect
   "Return a response corresponding to a redirect triggered in the user's browser."
