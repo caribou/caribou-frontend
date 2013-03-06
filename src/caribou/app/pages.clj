@@ -39,15 +39,17 @@
 
 (defn generate-core-action
   [controller-key action-key template page]
-  (let [action (retrieve-controller-action controller-key action-key)]
+  (let [action (retrieve-controller-action controller-key action-key)
+        found-template (template/find-template (or template (page :template)))]
     (fn [request]
-      (action (merge request {:template template :page page})))))
+      (action (merge request {:template found-template :page page})))))
 
 (defn generate-reloading-action
   [controller-key action-key template page]
   (fn [request]
-    (let [action (retrieve-controller-action controller-key action-key)]
-      (action (merge request {:template template :page page})))))
+    (let [action (retrieve-controller-action controller-key action-key)
+          found-template (template/find-template (or template (page :template)))]
+      (action (merge request {:template found-template :page page})))))
 
 (defn protect-action
   [action protection]
@@ -59,10 +61,9 @@
   "Return a handler that can be configured to reload controller namespaces"
   [page template controller-key action-key protection]
   (let [action (retrieve-controller-action controller-key action-key)
-        found-template (template/find-template (or template (page :template)))
         generated (if (-> @config/app :controller :reload)
-                    (generate-reloading-action controller-key action-key found-template page)
-                    (generate-core-action controller-key action-key found-template page))]
+                    (generate-reloading-action controller-key action-key template page)
+                    (generate-core-action controller-key action-key template page))]
     (if (empty? protection)
       generated
       (protect-action generated protection))))

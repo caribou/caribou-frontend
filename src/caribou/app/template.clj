@@ -46,6 +46,4 @@
     (condp = cache-strategy
       :never (parser/set-cache-policy parser/cache-never)
       :always (parser/set-cache-policy parser/cache-forever)
-      (parser/set-cache-policy parser/cache-forever))))
-
-
+      (parser/set-cache-policy parser/cache-never))))
