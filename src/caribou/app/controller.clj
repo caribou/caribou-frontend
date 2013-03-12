@@ -27,14 +27,8 @@ and only one way to be right"
   (if controller-key
     (let [full-controller-ns-name (str controller-ns "." controller-key)
           full-controller-ns (symbol full-controller-ns-name)]
-      (try
-        (do
-          (require :reload full-controller-ns)
-          (find-ns full-controller-ns))
-        (catch Exception e
-          (log/error (str "Cannot load namespace " full-controller-ns-name "\n" e) :CONTROLLER)
-          ; log/error returns a weird list
-          nil)))))
+        (require :reload full-controller-ns)
+        (find-ns full-controller-ns))))
 
 (defn get-controller-action
   "Find the function corresponding to the given controller namespace and
