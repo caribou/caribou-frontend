@@ -3,14 +3,14 @@
         [caribou.util :only (stringify-keys)])
   (:require [clojure.java.io :as io]
             [clojure.string :as string])
-  (:import [freemarker.template Configuration TemplateMethodModel]
-           [freemarker.ext.beans BeansWrapper]
-           [freemarker.cache NullCacheStorage]
+  (:import ; [freemarker.template Configuration TemplateMethodModel]
+           ;; [freemarker.ext.beans BeansWrapper]
+           ;; [freemarker.cache NullCacheStorage]
            [java.io StringWriter File]))
 
-(def freemarker-config (Configuration.))
+;; (def freemarker-config (Configuration.))
 
-(defn init
+#_(defn init
   "Set up our Freemarker config"
   [template-path]
   (doto freemarker-config
@@ -18,12 +18,12 @@
     (.setCacheStorage (NullCacheStorage.))
     (.setObjectWrapper (BeansWrapper.))))
 
-(defn get-template
+#_(defn get-template
   "Gets a Freemarker template from the Configuration"
   [template-name]
   (.getTemplate freemarker-config template-name))
 
-(defn render
+#_(defn render
   "Process a Freemarker template, returns a String"
   ([template root template-length]
   (let [out (StringWriter. template-length)]
@@ -34,7 +34,7 @@
     (let [template-length (.length (.toString template))]
       (render template root template-length))))
 
-(defn render-wrapper
+#_(defn render-wrapper
   "Wraps a template filename in a render"
   [template-name helpers]
   (fn [root]
@@ -45,12 +45,12 @@
           merged-root (merge root helpers)]
         (render template merged-root template-length))))
 
-(defn create-helper
+#_(defn create-helper
   [helper]
   (proxy [TemplateMethodModel] []
     (exec [args] (apply helper args))))
 
-(defn load-templates
+#_(defn load-templates
   "recurse through the view directory and add all the templates that can be found"
   [path]
   (init path)
