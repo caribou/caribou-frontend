@@ -75,7 +75,16 @@
 
 (defn routes-in-order
   [routes]
-  (map second (vals (into (sorted-map-by (fn [a b] (compare (first (a routes)) (first (b routes))))) routes))))
+  (map
+   second
+   (vals
+    (into
+     (sorted-map-by
+      (fn [a b]
+        (compare
+         (first (a routes))
+         (first (b routes)))))
+     routes))))
 
 (defn clear-routes
   "Clears the app's routes. Used by Halo to update the routes."

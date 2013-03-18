@@ -34,13 +34,14 @@
   []
   (if (empty? @routing/caribou-routes)
     (routing/add-default-route))
-  (apply
-   routes
-   (conj
-    (into [] (cons (HEAD "/" [] "") (routing/routes-in-order @routing/caribou-routes)))
-    (route/files "/" {:root (@core-config/app :asset-dir)})
-    (route/resources "/")
-    (partial error/render-error :404))))
+  (let [all-routes (routing/routes-in-order @routing/caribou-routes)]
+    (apply
+     routes
+     (conj
+      (into [] (cons (HEAD "/" [] "") all-routes))
+      (route/files "/" {:root (@core-config/app :asset-dir)})
+      (route/resources "/")
+      (partial error/render-error :404)))))
 
 (defn- init-routes
   []

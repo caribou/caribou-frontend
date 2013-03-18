@@ -25,9 +25,9 @@
 
 (defn retrieve-controller-action
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
-  [controller-key action-key]
-  (if-let [controller-namespace (controller/get-controller-namespace (-> @config/app :controller :namespace) controller-key)]
-    (let [controller-action (controller/get-controller-action controller-namespace action-key)]
+  [controller-namespace controller-key action-key]
+  (if-let [found-namespace (controller/get-controller-namespace controller-namespace controller-key)]
+    (let [controller-action (controller/get-controller-action found-namespace action-key)]
       (if controller-action
         (if (nil? controller-action)
           routing/default-action
@@ -38,16 +38,16 @@
       (format "Missing controller: %s" controller-key))))
 
 (defn generate-core-action
-  [controller-key action-key template page]
-  (let [action (retrieve-controller-action controller-key action-key)
+  [controller-namespace controller-key action-key template page]
+  (let [action (retrieve-controller-action controller-namespace controller-key action-key)
         found-template (template/find-template (or template (page :template)))]
     (fn [request]
       (action (merge request {:template found-template :page page})))))
 
 (defn generate-reloading-action
-  [controller-key action-key template page]
+  [controller-namespace controller-key action-key template page]
   (fn [request]
-    (let [action (retrieve-controller-action controller-key action-key)
+    (let [action (retrieve-controller-action controller-namespace controller-key action-key)
           found-template (template/find-template (or template (page :template)))]
       (action (merge request {:template found-template :page page})))))
 
@@ -59,11 +59,11 @@
 
 (defn generate-action
   "Return a handler that can be configured to reload controller namespaces"
-  [page template controller-key action-key protection]
-  (let [action (retrieve-controller-action controller-key action-key)
-        generated (if (-> @config/app :controller :reload)
-                    (generate-reloading-action controller-key action-key template page)
-                    (generate-core-action controller-key action-key template page))]
+  [page controller-namespace template controller-key action-key protection]
+  (let [generated
+        (if (-> @config/app :controller :reload)
+          (generate-reloading-action controller-namespace controller-key action-key template page)
+          (generate-core-action controller-namespace controller-key action-key template page))]
     (if (empty? protection)
       generated
       (protect-action generated protection))))
@@ -81,7 +81,7 @@
 
 (defn bind-action
   "Make a single route for a single page, given its overarching path (above-path)"
-  [page above-path protection]
+  [page controller-namespace above-path protection middleware]
   (let [page-path (:path page)
         path (str above-path (if-not (empty? page-path) (str "/" (name page-path))))
         page-slug (keyword (or (:slug page) (str (:id page))))
@@ -90,12 +90,12 @@
         method-key (:method page)
         template (:template page)
         protection (divine-protection page protection)
-        full (generate-action page template controller-key action-key protection)]
+        full (generate-action page controller-namespace template controller-key action-key protection)]
     (dosync
-     (alter actions merge {page-slug full}))
+     (alter actions merge {page-slug (middleware full)}))
     (concat
      [[path page-slug method-key]]
-     (mapcat #(bind-action % path protection) (:children page)))))
+     (mapcat #(bind-action % controller-namespace path protection middleware) (:children page)))))
 
 (defn slashify-route
   [[path slug method]]
@@ -103,9 +103,10 @@
 
 (defn generate-page-routes
   "Given a tree of pages construct and return a list of corresponding routes."
-  [pages]
+  [pages controller-namespace subpath middleware]
   (let [localization (or (:localize-routes @config/app) "")
-        routes (apply concat (map #(bind-action % localization nil) pages))
+        path (str subpath localization)
+        routes (apply concat (map #(bind-action % controller-namespace path nil middleware) pages))
         direct (map make-route routes)
         unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
         slashed (map slashify-route unslashed)
@@ -114,7 +115,7 @@
 
 (defn all-pages
   []
-  (if (@config/app :use-database)
+  (if (:use-database @config/app)
     (sql/with-connection @config/db
       (let [rows (util/query "select * from page order by position asc")]
         (model/arrange-tree rows)))
@@ -126,12 +127,25 @@
   (dosync
    (alter pages (fn [a b] b) tree)))
 
+(defn empty-middleware
+  [handler]
+  (fn [request]
+    (handler request)))
+
 (defn create-page-routes
   "Invoke pages from the db and generate the routes based on them."
   ([] (create-page-routes (all-pages)))
   ([tree]
      (invoke-pages tree)
-     (doall (generate-page-routes @pages))))
+     (doall (generate-page-routes @pages (-> @config/app :controller :namespace) "" empty-middleware))))
+
+(defn add-page-routes
+  ([] (add-page-routes (all-pages)))
+  ([pages] (add-page-routes pages (-> @config/app :controller :namespace)))
+  ([pages controller-namespace] (add-page-routes pages controller-namespace ""))
+  ([pages controller-namespace subpath] (add-page-routes pages controller-namespace subpath empty-middleware))
+  ([pages controller-namespace subpath middleware]
+     (doall (generate-page-routes pages controller-namespace subpath middleware))))
 
 (defn get-path
   [routes slug]
@@ -140,11 +154,14 @@
                   (str "route for " slug " not found")))))
 
 (defn sort-route-opts
-  [slug opts]
-  (let [path (get-path @routing/route-paths slug)
+  [routes slug opts]
+  (let [path (get-path routes slug)
         opt-keys (keys opts)
-        route-keys (map read-string (filter #(= (first %) \:)
-                                            (string/split path #"/")))
+        route-keys (map
+                    read-string
+                    (filter
+                     #(= (first %) \:)
+                     (string/split path #"/")))
         query-keys (remove (into #{} route-keys) opt-keys)]
     {:path path
      :route (select-keys opts route-keys)
@@ -152,17 +169,17 @@
 
 (defn select-route
   [slug opts]
-  (:route (sort-route-opts slug opts)))
+  (:route (sort-route-opts @routing/route-paths slug opts)))
 
 (defn select-query
   [slug opts]
-  (:query (sort-route-opts slug opts)))
+  (:query (sort-route-opts @routing/route-paths slug opts)))
 
 (defn reverse-route
   [routes slug opts]
   (let [{path :path
          route :route
-         query :query} (sort-route-opts slug opts)
+         query :query} (sort-route-opts routes slug opts)
         route-keys (keys route)
         query-keys (keys query)
         opt-keys (keys opts)
