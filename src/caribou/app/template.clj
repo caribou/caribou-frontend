@@ -4,8 +4,8 @@
             [clojure.string :as string]
             [caribou.util :as util]
             [caribou.config :as config]
-            [stencil.core :as stencil]
-            [stencil.parser :as parser]))
+            [antlers.core :as antlers]
+            [antlers.parser :as parser]))
 
 (def templates (ref {}))
 (def helpers (atom {}))
@@ -18,7 +18,7 @@
 (defn template-closure
   [path]
   (fn [params]
-    (stencil/render-file path params)))
+    (antlers/render-file path params)))
 
 (defn path-for-template
   [path]
