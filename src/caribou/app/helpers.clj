@@ -1,0 +1,18 @@
+(ns caribou.app.helpers
+  (:require [caribou.asset :as asset]
+            [caribou.config :as config]
+            [caribou.app.pages :as pages]
+            [lichen.core :as lichen]))
+
+(defn resize-image
+  [image opts]
+  (let [path (asset/asset-location image)
+        asset-root (@config/app :asset-dir)
+        lichen-path (str "/" lichen/lichen-root path)
+        queries (lichen/query-string opts)
+        target (lichen/lichen-uri lichen-path queries "")]
+    (lichen/lichen-resize lichen-path opts asset-root)
+    (str (@config/app :asset-root) "/" target)))
+
+(defn route-for [slug params & additional]
+  (pages/route-for slug (apply merge (cons params additional))))
