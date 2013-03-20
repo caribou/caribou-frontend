@@ -15,7 +15,8 @@
                  [clj-stacktrace "0.2.5"]
                  [hiccup "1.0.2"]
                  [cheshire "5.0.2"]
-                 [org.clojars.doo/cheshire "2.2.3"]]
+                 [org.clojars.doo/cheshire "2.2.3"]
+                 [ns-tracker "0.2.1"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :autodoc {:name "Caribou Frontend"
             :page-title "Caribou Frontend - Documentation"

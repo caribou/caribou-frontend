@@ -1,5 +1,6 @@
 (ns caribou.app.pages
-  (:use [clojure.walk :only (stringify-keys)])
+  (:use [clojure.walk :only (stringify-keys)]
+        [ns-tracker.core :only (ns-tracker)])
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
             [clojure.string :as string]
@@ -46,10 +47,13 @@
 
 (defn generate-reloading-action
   [controller-namespace controller-key action-key template page]
-  (fn [request]
-    (let [action (retrieve-controller-action controller-namespace controller-key action-key)
-          found-template (template/find-template (or template (page :template)))]
-      (action (merge request {:template found-template :page page})))))
+  (let [watched-namespaces (ns-tracker ["src"])]
+    (fn [request]
+      (doseq [ns-sym (watched-namespaces)]
+        (require :reload ns-sym))
+      (let [action (retrieve-controller-action controller-namespace controller-key action-key)
+            found-template (template/find-template (or template (page :template)))]
+        (action (merge request {:template found-template :page page}))))))
 
 (defn protect-action
   [action protection]
