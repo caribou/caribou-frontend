@@ -1,4 +1,4 @@
-(defproject antler/caribou-frontend "0.9.18"
+(defproject antler/caribou-frontend "0.9.19"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [antler/caribou-core "0.9.9"]
