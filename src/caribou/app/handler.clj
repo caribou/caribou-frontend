@@ -1,14 +1,15 @@
 (ns caribou.app.handler
-  (:use [compojure.core :only (routes HEAD)]
-        caribou.debug
+  (:use caribou.debug
+        [ring.middleware.content-type :only (wrap-content-type)]
         [ring.middleware.file :only (wrap-file)]
         [ring.middleware.resource :only (wrap-resource)]
+        [ring.middleware.file-info :only (wrap-file-info)]
+        [ring.middleware.head :only (wrap-head)]
         [ring.middleware.json-params :only (wrap-json-params)]
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
-        [ring.middleware.session :only (wrap-session)])
+        [ring.middleware.session :only (wrap-session)]
+        [ring.util.response :only (file-response)])
   (:require [caribou.util :as util]
-            [compojure.route :as route]
-            [compojure.handler :as compojure-handler]
             [caribou.config :as core-config]
             [caribou.model :as core-model]
             [caribou.db :as core-db]
@@ -30,6 +31,7 @@
     (fn [request] ((wrap-resource handler public-dir) request))
     (fn [request] (handler request))))
 
+(comment
 (defn- pack-routes
   []
   (if (empty? @routing/caribou-routes)
@@ -41,12 +43,47 @@
       (into [] (cons (HEAD "/" [] "") all-routes))
       (route/files "/" {:root (@core-config/app :asset-dir)})
       (route/resources "/")
-      (partial error/render-error :404)))))
+      (partial error/render-error :404))))))
 
-(defn- init-routes
+;; STOLEN from compojure
+(defn files
+  "A route for serving static files from a directory. Accepts the following
+  keys:
+    :root - the root path where the files are stored. Defaults to 'public'."
+  [path & [options]]
+  (routing/add-route :--FILES
+                     :get
+                     (str path "/*")
+                     (fn [request]
+                       (println request))))
+
+        ;(let [options (merge {:root "public"} options)]
+          ;(file-response file-path options)))
+      ;(wrap-file-info (:mime-types options))
+      ;(wrap-head)
+
+;(defn resources
+  ;"A route for serving resources on the classpath. Accepts the following
+  ;keys:
+    ;:root - the root prefix to get the resources from. Defaults to 'public'."
+  ;[path & [options]]
+  ;(-> (GET (add-wildcard path) {{resource-path :*} :route-params}
+        ;(let [root (:root options "public")]
+          ;(resource-response (str root "/" resource-path))))
+      ;(wrap-file-info (:mime-types options))
+      ;(wrap-content-type options)
+      ;(wrap-head)))
+;; END stolen
+
+(defn init-routes
   []
-  (-> (pack-routes)
-      (middleware/wrap-custom-middleware)))
+  (let [routes (routing/routes-in-order @routing/caribou-routes)]
+    (routing/add-head-routes routes)
+    (-> (routing/router)
+        (files "/" {:root (get @core-config/app :asset-dir)})
+        ;(resources "/")
+        (partial error/render-error :404)
+        (middleware/wrap-custom-middleware))))
 
 (defn base-handler
   []

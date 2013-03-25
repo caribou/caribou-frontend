@@ -1,10 +1,9 @@
 (ns caribou.app.routing
   (:use [clj-time.core :only (now)]
         [clj-time.format :only (unparse formatters)]
-        [compojure.core :only (routes GET POST PUT DELETE ANY)]
+        [clout.core :only (route-compile route-matches)]
         [ring.middleware file file-info])
   (:require [clojure.string :as string]
-            [compojure.handler :as compojure-handler]
             [caribou.app.controller :as controller]
             [caribou.app.template :as template]
             [caribou.app.util :as app-util]
@@ -19,14 +18,7 @@
 (defonce route-counter (atom 0))
 (defonce pre-actions (atom {}))
 
-(defn resolve-method
-  [method path func]
-  (condp = method
-    "GET" (GET path {params :params} func)
-    "POST" (POST path {params :params} func)
-    "PUT" (PUT path {params :params} func)
-    "DELETE" (DELETE path {params :params} func)
-    (ANY path {params :params} func)))
+(defrecord Route [slug method route action])
 
 ;; these are backwards because we nest the func in reverse order
 (defn prepend-pre-action
@@ -63,12 +55,16 @@
   (keyword (or (last (re-find #"(.+)-with-slash" (name key))) key)))
 
 (defn add-route
-  [slug method route func]
+  [slug method route action]
   (let [base (deslash slug)
         relevant-pre-actions (get @pre-actions base)
-        full-action (wrap-pre-actions relevant-pre-actions func)]
+        full-action (wrap-pre-actions relevant-pre-actions action)
+        method (or method :get)
+        method (keyword (string/lower-case method))
+        compiled-route (route-compile route)
+        caribou-route (Route. slug method compiled-route full-action)]
     (log/debug (format "adding route %s : %s -- %s %s " slug base route method) :routing)
-    (swap! caribou-routes assoc slug [@route-counter (resolve-method method route full-action)])
+    (swap! caribou-routes assoc slug [@route-counter caribou-route])
     (swap! route-counter inc)
     (swap! caribou-route-order conj slug)
     (swap! route-paths assoc (keyword slug) route)))
@@ -113,3 +109,32 @@
 (defn add-default-route
   []
   (add-route :default "GET" "/" default-index))
+
+(defn add-head-routes
+  [routes]
+  (doseq [route routes]
+    (let [route-slug (str "--HEAD-" (:slug route))
+          compiled-route (:route route)]
+      (add-route route-slug :head compiled-route (fn [req] "")))))
+
+(defn route-matches?
+  [request route-number caribou-route]
+  (let [method (:request-method request)
+        compiled-route (:route caribou-route)
+        method-matches (= method (:method caribou-route))]
+    (when method-matches
+      (when-let [match-result (route-matches compiled-route request)]
+       [route-number match-result]))))
+
+(defn router
+  []
+  (fn [request]
+    (let [routes (routes-in-order @caribou-routes)
+          route-search (first (keep-indexed (partial route-matches? request) routes))]
+      (if route-search
+        (let [route-number (first route-search)
+              route-params (second route-search)
+              request (assoc request :route-params route-params)
+              matched-route (nth routes route-number)
+              action (:action matched-route)]
+          (action request))))))

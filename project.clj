@@ -3,7 +3,7 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [antler/caribou-core "0.9.9"]
                  [clj-time "0.4.4"]
-                 [compojure "1.1.3" :exclusions [ring/ring-core ring]]
+                 [clout "1.1.0"]
                  [antler/antlers "0.5.0"]
                  [antler/lichen "0.3.3"]
                  [fuziontech/ring-json-params "0.2.0" :exclusions [cheshire]]
