@@ -5,6 +5,7 @@
         [ring.middleware file file-info])
   (:require [clojure.string :as string]
             [caribou.app.controller :as controller]
+            [caribou.app.error :as error]
             [caribou.app.template :as template]
             [caribou.app.util :as app-util]
             [caribou.config :as config]
@@ -60,7 +61,7 @@
         relevant-pre-actions (get @pre-actions base)
         full-action (wrap-pre-actions relevant-pre-actions action)
         method (or method :get)
-        method (keyword (string/lower-case method))
+        method (keyword (string/lower-case (name method)))
         compiled-route (route-compile route)
         caribou-route (Route. slug method compiled-route full-action)]
     (log/debug (format "adding route %s : %s -- %s %s " slug base route method) :routing)
@@ -113,9 +114,9 @@
 (defn add-head-routes
   [routes]
   (doseq [route routes]
-    (let [route-slug (str "--HEAD-" (:slug route))
-          compiled-route (:route route)]
-      (add-route route-slug :head compiled-route (fn [req] "")))))
+    (let [route-slug (keyword (str "--HEAD-" (name (:slug route))))
+          route-re (-> route :route :re)]
+      (add-route route-slug :head (str route-re) (fn [req] "")))))
 
 (defn route-matches?
   [request route-number caribou-route]
@@ -124,9 +125,10 @@
         method-matches (= method (:method caribou-route))]
     (when method-matches
       (when-let [match-result (route-matches compiled-route request)]
-       [route-number match-result]))))
+       [route-number match-result])))) ;FIXME: is this ugly?
 
 (defn router
+  "takes a request and performs the action associated with the matching route"
   []
   (fn [request]
     (let [routes (routes-in-order @caribou-routes)
@@ -137,4 +139,5 @@
               request (assoc request :route-params route-params)
               matched-route (nth routes route-number)
               action (:action matched-route)]
-          (action request))))))
+          (action request))
+        (error/render-error :404 request)))))

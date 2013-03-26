@@ -8,7 +8,7 @@
         [ring.middleware.json-params :only (wrap-json-params)]
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
         [ring.middleware.session :only (wrap-session)]
-        [ring.util.response :only (file-response)])
+        [ring.util.response :only (resource-response file-response)])
   (:require [caribou.util :as util]
             [caribou.config :as core-config]
             [caribou.model :as core-model]
@@ -45,22 +45,28 @@
       (route/resources "/")
       (partial error/render-error :404))))))
 
-;; STOLEN from compojure
-(defn files
+;; STOLEN/adapted from compojure
+(defn- add-wildcard
+  "Add a wildcard to the end of a route path."
+  [path]
+  (str path (if (.endsWith path "/") "*" "/*")))
+
+(defn resource-handler
+  [options]
+  (fn [request]
+    (let [options (merge {:root "public"} options)
+          file-path (-> request :route-params :*)]
+      (resource-response file-path options))))
+
+(defn resources
   "A route for serving static files from a directory. Accepts the following
   keys:
     :root - the root path where the files are stored. Defaults to 'public'."
   [path & [options]]
-  (routing/add-route :--FILES
+  (routing/add-route :--RESOURCES
                      :get
-                     (str path "/*")
-                     (fn [request]
-                       (println request))))
-
-        ;(let [options (merge {:root "public"} options)]
-          ;(file-response file-path options)))
-      ;(wrap-file-info (:mime-types options))
-      ;(wrap-head)
+                     (add-wildcard path)
+                     (resource-handler options)))
 
 ;(defn resources
   ;"A route for serving resources on the classpath. Accepts the following
@@ -77,19 +83,19 @@
 
 (defn init-routes
   []
+  (middleware/add-custom-middleware middleware/wrap-xhr-request)
   (let [routes (routing/routes-in-order @routing/caribou-routes)]
     (routing/add-head-routes routes)
-    (-> (routing/router)
-        (files "/" {:root (get @core-config/app :asset-dir)})
-        ;(resources "/")
-        (partial error/render-error :404)
-        (middleware/wrap-custom-middleware))))
+    (resources "/")))
 
-(defn base-handler
+(defn handler
   []
-  (middleware/add-custom-middleware middleware/wrap-xhr-request)
-  (init-routes))
+  (-> (routing/router)
+      (middleware/wrap-custom-middleware)
+      (wrap-file-info)
+      (wrap-head)))
 
+(comment
 (defn _dynamic-handler
   "calls the dynamic route generation functions and returns a composite handler"
   []
@@ -114,4 +120,4 @@
   []
   (log :handler "Resetting Handler")
   (routing/clear-routes)
-  (app-util/memoize-reset dynamic-handler))
+  (app-util/memoize-reset dynamic-handler)))
