@@ -92,15 +92,22 @@
   (controller/render request))
 
 (defn add-default-route
-  [routes]
-  (add-route routes :default "GET" "/" default-index))
+  []
+  (add-route :default "GET" "/" default-index))
 
-(defn add-head-routes
+(defn merge-head-routes
   [routes]
-  (doseq [route @routes]
-    (let [route-slug (keyword (str "--HEAD-" (name (:slug route))))
-          route-re (-> route :route :re)]
-      (add-route routes route-slug :head (str route-re) (fn [req] "")))))
+  (reduce
+   (fn [added route]
+     (let [route-slug (keyword (str "--HEAD-" (name (:slug route))))
+           route-re (-> route :route :re)]
+       (merge-route added route-slug :head (str route-re) (fn [req] ""))))
+   routes
+   (routes-in-order routes)))
+     
+(defn add-head-routes
+  []
+  (swap! routes merge-head-routes))
 
 (defn route-matches?
   [request route]

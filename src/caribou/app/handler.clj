@@ -35,7 +35,7 @@
 (defn- pack-routes
   []
   (if (empty? @routing/routes)
-    (routing/add-default-route @routing/routes))
+    (routing/add-default-route))
   (let [all-routes (routing/routes-in-order @routing/routes)]
     (apply
      routes
