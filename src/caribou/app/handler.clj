@@ -68,18 +68,6 @@
                      :get
                      (add-wildcard path)
                      (resource-handler options)))
-
-;(defn resources
-  ;"A route for serving resources on the classpath. Accepts the following
-  ;keys:
-    ;:root - the root prefix to get the resources from. Defaults to 'public'."
-  ;[path & [options]]
-  ;(-> (GET (add-wildcard path) {{resource-path :*} :route-params}
-        ;(let [root (:root options "public")]
-          ;(resource-response (str root "/" resource-path))))
-      ;(wrap-file-info (:mime-types options))
-      ;(wrap-content-type options)
-      ;(wrap-head)))
 ;; END stolen
 
 (defn init-routes

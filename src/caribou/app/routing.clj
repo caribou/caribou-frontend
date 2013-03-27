@@ -122,7 +122,7 @@
 
 (defn find-first
   [p s]
-  (first (filter identity (map p s))))
+  (first (remove nil? (map p s))))
 
 (defn router
   "takes a request and performs the action associated with the matching route"
