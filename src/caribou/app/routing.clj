@@ -12,11 +12,8 @@
             [caribou.logger :as log]
             [caribou.util :as util]))
 
-(defonce caribou-routes (atom {}))
-(defonce caribou-route-order (atom []))
-(defonce route-paths (atom {}))
-(defonce error-handlers (atom {}))
-(defonce route-counter (atom 0))
+(defonce routes (atom {}))
+(defonce routes-order (atom []))
 (defonce pre-actions (atom {}))
 
 (defrecord Route [slug method route action])
@@ -56,50 +53,31 @@
   (keyword (or (last (re-find #"(.+)-with-slash" (name key))) key)))
 
 (defn add-route
-  [slug method route action]
+  [routes slug method path action]
   (let [base (deslash slug)
         relevant-pre-actions (get @pre-actions base)
         full-action (wrap-pre-actions relevant-pre-actions action)
         method (or method :get)
         method (keyword (string/lower-case (name method)))
-        compiled-route (route-compile route)
-        caribou-route (Route. slug method compiled-route full-action)]
-    (log/debug (format "adding route %s : %s -- %s %s " slug base route method) :routing)
-    (swap! caribou-routes assoc slug [@route-counter caribou-route])
-    (swap! route-counter inc)
-    (swap! caribou-route-order conj slug)
-    (swap! route-paths assoc (keyword slug) route)))
+        compiled-route (route-compile path)
+        route (Route. slug method compiled-route full-action)]
+    (log/debug (format "adding route %s : %s -- %s %s " slug base path method) :routing)
+    (swap! routes-order conj slug)
+    (swap! routes assoc slug route)))
 
 (defn routes-in-order
-  [routes]
-  (map
-   second
-   (vals
-    (into
-     (sorted-map-by
-      (fn [a b]
-        (compare
-         (first (a routes))
-         (first (b routes)))))
-     routes))))
+  [routes routes-order]
+  (map (partial get routes) routes-order))
 
-(defn clear-routes
+(defn clear-routes!
   "Clears the app's routes. Used by Halo to update the routes."
   []
-  (reset! caribou-routes {})
-  (reset! route-counter 0)
-  (reset! caribou-route-order [])
-  (reset! route-paths {}))
+  (reset! routes-order [])
+  (reset! routes {}))
 
-(defn clear-pre-actions
+(defn clear-pre-actions!
   []
   (reset! pre-actions {}))
-
-(defn default-action
-  "if a page doesn't have a defined action, we just send the params to the template"
-  [params]
-  (let [template (params :template)]
-    (template params)))
 
 (def built-in-formatter (formatters :basic-date-time))
 
@@ -108,30 +86,30 @@
   (format "Welcome to Caribou! Next step is to add some pages.<br /> %s" (unparse built-in-formatter (now))))
 
 (defn add-default-route
-  []
-  (add-route :default "GET" "/" default-index))
+  [routes]
+  (add-route routes :default "GET" "/" default-index))
 
 (defn add-head-routes
   [routes]
-  (doseq [route routes]
+  (doseq [route @routes]
     (let [route-slug (keyword (str "--HEAD-" (name (:slug route))))
           route-re (-> route :route :re)]
-      (add-route route-slug :head (str route-re) (fn [req] "")))))
+      (add-route routes route-slug :head (str route-re) (fn [req] "")))))
 
 (defn route-matches?
-  [request route-number caribou-route]
+  [request route-number route]
   (let [method (:request-method request)
-        compiled-route (:route caribou-route)
-        method-matches (= method (:method caribou-route))]
+        compiled-route (:route route)
+        method-matches (= method (:method route))]
     (when method-matches
       (when-let [match-result (route-matches compiled-route request)]
        [route-number match-result])))) ;FIXME: is this ugly?
 
 (defn router
   "takes a request and performs the action associated with the matching route"
-  []
+  [routes routes-order]
   (fn [request]
-    (let [routes (routes-in-order @caribou-routes)
+    (let [routes (routes-in-order routes routes-order)
           route-search (first (keep-indexed (partial route-matches? request) routes))]
       (if route-search
         (let [route-number (first route-search)

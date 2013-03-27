@@ -34,9 +34,9 @@
 (comment
 (defn- pack-routes
   []
-  (if (empty? @routing/caribou-routes)
-    (routing/add-default-route))
-  (let [all-routes (routing/routes-in-order @routing/caribou-routes)]
+  (if (empty? @routing/routes)
+    (routing/add-default-route @routing/routes))
+  (let [all-routes (routing/routes-in-order @routing/routes @routing/routes-order)]
     (apply
      routes
      (conj
@@ -62,8 +62,9 @@
   "A route for serving static files from a directory. Accepts the following
   keys:
     :root - the root path where the files are stored. Defaults to 'public'."
-  [path & [options]]
-  (routing/add-route :--RESOURCES
+  [routes path & [options]]
+  (routing/add-route routes
+                     :--RESOURCES
                      :get
                      (add-wildcard path)
                      (resource-handler options)))
@@ -84,9 +85,9 @@
 (defn init-routes
   []
   (middleware/add-custom-middleware middleware/wrap-xhr-request)
-  (let [routes (routing/routes-in-order @routing/caribou-routes)]
-    (routing/add-head-routes routes)
-    (resources "/")))
+  (let [routes (routing/routes-in-order @routing/routes @routing/routes-order)]
+    (routing/add-head-routes routing/routes)
+    (resources routing/routes "/")))
 
 (defn handler
   []
