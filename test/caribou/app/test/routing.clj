@@ -9,5 +9,5 @@
   (routing/add-head-routes)
   (let [router (routing/router @routing/routes)]
     (is (= ":yoyoyoyo" (router {:uri "/" :request-method :get})))
-    (is (= "foundational" (router {:uri "/later/foundational" :request-method :get})))
+    (is (= "foundational" (router {:uri "/later/foundational"})))
     (is (= "probiotic-growth" (router {:uri "/probiotic/growth" :request-method :get})))))
