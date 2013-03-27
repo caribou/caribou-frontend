@@ -36,7 +36,7 @@
   []
   (if (empty? @routing/routes)
     (routing/add-default-route @routing/routes))
-  (let [all-routes (routing/routes-in-order @routing/routes @routing/routes-order)]
+  (let [all-routes (routing/routes-in-order @routing/routes)]
     (apply
      routes
      (conj
@@ -85,7 +85,7 @@
 (defn init-routes
   []
   (middleware/add-custom-middleware middleware/wrap-xhr-request)
-  (let [routes (routing/routes-in-order @routing/routes @routing/routes-order)]
+  (let [routes (routing/routes-in-order @routing/routes)]
     (routing/add-head-routes routing/routes)
     (resources routing/routes "/")))
 

@@ -153,7 +153,7 @@
 
 (defn get-path
   [routes slug]
-  (or (get routes (keyword slug))
+  (or (get (get routes (keyword slug)) :path)
       (throw (new Exception
                   (str "route for " slug " not found")))))
 
@@ -173,19 +173,19 @@
 
 (defn select-route
   [slug opts]
-  (:route (sort-route-opts @routing/route-paths slug opts)))
+  (:route (sort-route-opts @routing/routes slug opts)))
 
 (defn select-query
   [slug opts]
-  (:query (sort-route-opts @routing/route-paths slug opts)))
+  (:query (sort-route-opts @routing/routes slug opts)))
 
 (defn reverse-route
   [routes slug opts]
   (let [{path :path
-         route :route
-         query :query} (sort-route-opts routes slug opts)
-        route-keys (keys route)
-        query-keys (keys query)
+         route-matches :route
+         query-matches :query} (sort-route-opts routes slug opts)
+        route-keys (keys route-matches)
+        query-keys (keys query-matches)
         opt-keys (keys opts)
         base (reduce
               #(string/replace-first %1 (str (keyword %2)) (get opts %2))
@@ -199,4 +199,4 @@
 
 (defn route-for
   [slug opts]
-  (reverse-route @routing/route-paths slug opts))
+  (reverse-route @routing/routes slug opts))

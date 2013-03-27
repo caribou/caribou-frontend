@@ -1,9 +1,10 @@
 (ns caribou.app.routing
   (:use [clj-time.core :only (now)]
         [clj-time.format :only (unparse formatters)]
-        [clout.core :only (route-compile route-matches)]
         [ring.middleware file file-info])
   (:require [clojure.string :as string]
+            [clout.core :as clout]
+            [flatland.ordered.map :as flatland]
             [caribou.app.controller :as controller]
             [caribou.app.error :as error]
             [caribou.app.template :as template]
@@ -12,11 +13,10 @@
             [caribou.logger :as log]
             [caribou.util :as util]))
 
-(defonce routes (atom {}))
-(defonce routes-order (atom []))
+(defonce routes (atom (flatland/ordered-map)))
 (defonce pre-actions (atom {}))
 
-(defrecord Route [slug method route action])
+(defrecord Route [slug method path route action])
 
 ;; these are backwards because we nest the func in reverse order
 (defn prepend-pre-action
@@ -52,27 +52,29 @@
   [key]
   (keyword (or (last (re-find #"(.+)-with-slash" (name key))) key)))
 
-(defn add-route
+(defn merge-route
   [routes slug method path action]
   (let [base (deslash slug)
         relevant-pre-actions (get @pre-actions base)
         full-action (wrap-pre-actions relevant-pre-actions action)
         method (or method :get)
         method (keyword (string/lower-case (name method)))
-        compiled-route (route-compile path)
-        route (Route. slug method compiled-route full-action)]
-    (log/debug (format "adding route %s : %s -- %s %s " slug base path method) :routing)
-    (swap! routes-order conj slug)
-    (swap! routes assoc slug route)))
+        compiled-route (clout/route-compile path)
+        route (Route. slug method path compiled-route full-action)]
+    (assoc routes slug route)))
+
+(defn add-route
+  [slug method path action]
+  (log/debug (format "adding route %s : %s -- %s %s " slug (deslash slug) path method) :routing)
+  (swap! routes merge-route slug method path action))
 
 (defn routes-in-order
-  [routes routes-order]
-  (map (partial get routes) routes-order))
+  [routes]
+  (vals routes))
 
 (defn clear-routes!
   "Clears the app's routes. Used by Halo to update the routes."
   []
-  (reset! routes-order [])
   (reset! routes {}))
 
 (defn clear-pre-actions!
@@ -84,6 +86,10 @@
 (defn default-index
   [request]
   (format "Welcome to Caribou! Next step is to add some pages.<br /> %s" (unparse built-in-formatter (now))))
+
+(defn default-action
+  [request]
+  (controller/render request))
 
 (defn add-default-route
   [routes]
@@ -97,25 +103,29 @@
       (add-route routes route-slug :head (str route-re) (fn [req] "")))))
 
 (defn route-matches?
-  [request route-number route]
-  (let [method (:request-method request)
+  [request route]
+  (let [request-method (:request-method request)
         compiled-route (:route route)
-        method-matches (= method (:method route))]
+        method (:method route)
+        method-matches (or (= method request-method)
+                           (and (nil? request-method) (= method :get)))]
     (when method-matches
-      (when-let [match-result (route-matches compiled-route request)]
-       [route-number match-result])))) ;FIXME: is this ugly?
+      (when-let [match-result (clout/route-matches compiled-route request)]
+        [route match-result]))))
+
+(defn find-first
+  [p s]
+  (first (filter identity (map p s))))
 
 (defn router
   "takes a request and performs the action associated with the matching route"
-  [routes routes-order]
+  [routes]
   (fn [request]
-    (let [routes (routes-in-order routes routes-order)
-          route-search (first (keep-indexed (partial route-matches? request) routes))]
-      (if route-search
-        (let [route-number (first route-search)
-              route-params (second route-search)
-              request (assoc request :route-params route-params)
-              matched-route (nth routes route-number)
-              action (:action matched-route)]
+    (let [ordered-routes (routes-in-order routes)
+          [route match] (find-first (partial route-matches? request) ordered-routes)]
+      (if match
+        (let [request (assoc request :route-params match)
+              request (update-in request [:params] #(merge % match))
+              action (:action route)]
           (action request))
         (error/render-error :404 request)))))

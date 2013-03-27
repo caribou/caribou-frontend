@@ -18,9 +18,6 @@
     (dosync (ref-set controller/session-canary old-canary))))
 
 (deftest render-test
-  (testing "error reporting if template is malformed"
-    (is (thrown-with-msg? Exception #"no template"
-          (controller/render {:template nil}))))
   (let [defaulted (controller/render {:template identity})
         params {:status 500
                 :template identity
@@ -29,9 +26,8 @@
         provided (controller/render params)]
     (testing "Default values"
       (is (= 200 (get defaulted :status)))
-      (is (= nil (get defaulted :session :default)))
       (is (= {:template identity} (get defaulted :body)))
-      (is (= "text/html"
+      (is (= "text/html;charset=utf-8"
              (-> defaulted :headers (get "Content-Type")))))
     (testing "Explicit values"
       (is (= 500 (get provided :status)))

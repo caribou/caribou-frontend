@@ -4,11 +4,13 @@
             [caribou.app.routing :as routing]))
 
 (deftest route-for-test
-  (let [route-paths @routing/route-paths
-        new-paths {:the_googles "/:site/:locale/content/:color/search"}]
-    (dosync (swap! routing/route-paths (constantly new-paths)))
+  (let [old-routes @routing/routes]
+    (routing/clear-routes!)
+    (routing/add-route :the_googles :get "/:site/:locale/content/:color/search" identity)
+        ;; new-routes {:the_googles "/:site/:locale/content/:color/search"}]
+    
     (testing "null input"
-      (is (= (get new-paths :the_googles)
+      (is (= (-> @routing/routes :the_googles :path)
              (pages/route-for :the_googles {})))
       (is (= {}
              (pages/select-query :the_googles {})))
@@ -38,4 +40,4 @@
     (testing "invalid input"
       (is (thrown-with-msg? Exception #"route for .* not found"
             (pages/route-for :the_bing {}))))
-    (dosync (swap! routing/route-paths (constantly route-paths)))))
+    (dosync (swap! routing/routes (constantly old-routes)))))
