@@ -57,7 +57,7 @@
   (let [base (deslash slug)
         relevant-pre-actions (get @pre-actions base)
         full-action (wrap-pre-actions relevant-pre-actions action)
-        method (or method :get)
+        method (if (empty? method) :get method)
         method (keyword (string/lower-case (name method)))
         compiled-route (clout/route-compile path)
         route (Route. slug method path compiled-route full-action)]

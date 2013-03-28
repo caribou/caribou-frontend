@@ -63,23 +63,23 @@
   keys:
     :root - the root path where the files are stored. Defaults to 'public'."
   [routes path & [options]]
-  (routing/add-route routes
-                     :--RESOURCES
-                     :get
-                     (add-wildcard path)
-                     (resource-handler options)))
+  (routing/add-route
+   :--RESOURCES
+   :get
+   (add-wildcard path)
+   (resource-handler options)))
 ;; END stolen
 
 (defn init-routes
   []
   (middleware/add-custom-middleware middleware/wrap-xhr-request)
   (let [routes (routing/routes-in-order @routing/routes)]
-    (routing/add-head-routes routing/routes)
+    (routing/add-head-routes)
     (resources routing/routes "/")))
 
 (defn handler
   []
-  (-> (routing/router)
+  (-> (routing/router @routing/routes)
       (middleware/wrap-custom-middleware)
       (wrap-file-info)
       (wrap-head)))
