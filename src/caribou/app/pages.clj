@@ -1,15 +1,16 @@
 (ns caribou.app.pages
-  (:use [clojure.walk :only (stringify-keys)]
-        [ns-tracker.core :only (ns-tracker)])
+  (:use [ns-tracker.core :only (ns-tracker)])
   (:require [clojure.java.jdbc :as sql]
             [clojure.java.io :as io]
             [clojure.string :as string]
+            [clojure.walk :as walk]
             [ring.util.codec :as codec]
             [ring.middleware.basic-authentication :only (wrap-basic-authentication)]
             [caribou.config :as config]
             [caribou.util :as util]
             [caribou.db :as db]
             [caribou.model :as model]
+            [caribou.logger :as log]
             [caribou.app.auth :as auth]
             [caribou.app.controller :as controller]
             [caribou.app.routing :as routing]
@@ -38,12 +39,49 @@
     (fn [request]
       (format "Missing controller: %s" controller-key))))
 
+(defn placeholder?
+  [el]
+  (and
+   (keyword? el)
+   (= \$ (-> el name first))))
+
+(defn siphon-substitute
+  [spec request]
+  (walk/postwalk
+   (fn [el]
+     (if (placeholder? el)
+       (let [key (-> el name (subs 1) keyword)]
+         (-> request :params key))
+       el))
+   spec))
+
+(def op-map
+  {:gather model/gather
+   :pick model/pick})
+
+(defn draw-siphons
+  [page request]
+  (let [content
+        (reduce
+         (fn [content [key siphon]]
+           (let [spec (:spec siphon)
+                 model (:model spec)
+                 op-slug (:op spec)
+                 op (get op-map op-slug)
+                 spec (dissoc spec :model :op)
+                 filled (siphon-substitute spec request)
+                 target (op model filled)]
+             (assoc content key target)))
+         {} (:siphons page))]
+    (assoc page
+      :content content)))
+
 (defn generate-core-action
   [controller-namespace controller-key action-key template page]
   (let [action (retrieve-controller-action controller-namespace controller-key action-key)
         found-template (template/find-template (or template (page :template)))]
     (fn [request]
-      (action (merge request {:template found-template :page page})))))
+      (action (merge request {:template found-template :page (draw-siphons page request)})))))
 
 (defn generate-reloading-action
   [controller-namespace controller-key action-key template page]
@@ -53,7 +91,7 @@
         (require :reload ns-sym))
       (let [action (retrieve-controller-action controller-namespace controller-key action-key)
             found-template (template/find-template (or template (page :template)))]
-        (action (merge request {:template found-template :page page}))))))
+        (action (merge request {:template found-template :page (draw-siphons page request)}))))))
 
 (defn protect-action
   [action protection]
@@ -121,7 +159,10 @@
   []
   (if (:use-database @config/app)
     (sql/with-connection @config/db
-      (let [rows (util/query "select * from page order by position asc")]
+      (let [rows (model/gather
+                  :page
+                  {:include {:siphons {}}
+                   :order {:position :asc}})]
         (model/arrange-tree rows)))
     []))
 
