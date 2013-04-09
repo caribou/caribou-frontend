@@ -31,10 +31,11 @@
 
 (defn find-template
   [path]
-  (let [template-path (path-for-template path)]
-    (if (template-exists? template-path)
-      (template-closure template-path)
-      (default-template path))))
+  (when-not (empty? path)
+    (let [template-path (path-for-template path)]
+      (if (template-exists? template-path)
+        (template-closure template-path)
+        (default-template path)))))
 
 (defn register-helper
   [helper-name helper]
