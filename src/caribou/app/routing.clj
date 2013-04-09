@@ -114,7 +114,7 @@
   (let [request-method (:request-method request)
         compiled-route (:route route)
         method (:method route)
-        method-matches (or (= (:all method))
+        method-matches (or (= :all method)
                            (= method request-method)
                            (and (nil? request-method) (= method :get)))]
     (when method-matches

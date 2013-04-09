@@ -23,7 +23,8 @@
 (defn create-missing-controller-action
   [controller-key action-key]
   (fn [request]
-    (format "Missing controller or action: %s/%s" controller-key action-key)))
+    {:status 500
+     :body (format "Missing controller or action: %s/%s" controller-key action-key)}))
 
 (defn retrieve-controller-action
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
@@ -34,10 +35,8 @@
         (if (nil? controller-action)
           routing/default-action
           controller-action)
-        (fn [request]
-          (format "Missing controller action: %s/%s" controller-key action-key))))
-    (fn [request]
-      (format "Missing controller: %s" controller-key))))
+        (create-missing-controller-action controller-key action-key)))
+    (create-missing-controller-action controller-key action-key)))
 
 (defn placeholder?
   [el]
