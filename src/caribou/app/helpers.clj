@@ -17,4 +17,6 @@
 (defn route-for [slug params & additional]
   (pages/route-for slug (apply merge (cons params additional))))
 
-(def helpers {:resize resize-image :route-for route-for})
+(def helpers
+  {:resize resize-image
+   :route-for route-for})
