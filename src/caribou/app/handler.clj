@@ -31,19 +31,19 @@
     (fn [request] ((wrap-resource handler public-dir) request))
     (fn [request] (handler request))))
 
-(comment
-(defn- pack-routes
-  []
-  (if (empty? @routing/routes)
-    (routing/add-default-route))
-  (let [all-routes (routing/routes-in-order @routing/routes)]
-    (apply
-     routes
-     (conj
-      (into [] (cons (HEAD "/" [] "") all-routes))
-      (route/files "/" {:root (@core-config/app :asset-dir)})
-      (route/resources "/")
-      (partial error/render-error :404))))))
+;; (comment
+;; (defn- pack-routes
+;;   []
+;;   (if (empty? @routing/routes)
+;;     (routing/add-default-route))
+;;   (let [all-routes (routing/routes-in-order @routing/routes)]
+;;     (apply
+;;      routes
+;;      (conj
+;;       (into [] (cons (HEAD "/" [] "") all-routes))
+;;       (route/files "/" {:root (@core-config/app :asset-dir)})
+;;       (route/resources "/")
+;;       (partial error/render-error :404))))))
 
 ;; STOLEN/adapted from compojure
 (defn- add-wildcard
@@ -84,29 +84,29 @@
       (wrap-file-info)
       (wrap-head)))
 
-(comment
-(defn _dynamic-handler
-  "calls the dynamic route generation functions and returns a composite handler"
-  []
-  (core-config/init)
-  (core-model/init)
-  (i18n/init)
-  (template/init)
-  ((:reload-pages @halo/halo-hooks))
-  (halo/init)
-  (base-handler))
+;; (comment
+;; (defn _dynamic-handler
+;;   "calls the dynamic route generation functions and returns a composite handler"
+;;   []
+;;   (core-config/init)
+;;   (core-model/init)
+;;   (i18n/init)
+;;   (template/init)
+;;   ((:reload-pages @halo/halo-hooks))
+;;   (halo/init)
+;;   (base-handler))
 
-(def dynamic-handler (app-util/memoize-visible-atom _dynamic-handler))
+;; (def dynamic-handler (app-util/memoize-visible-atom _dynamic-handler))
 
-(defn gen-handler
-  "Returns a function that calls our memoized handler on every request"
-  []
-  (fn [request]
-    ((dynamic-handler) request)))
+;; (defn gen-handler
+;;   "Returns a function that calls our memoized handler on every request"
+;;   []
+;;   (fn [request]
+;;     ((dynamic-handler) request)))
 
-(defn reset-handler
-  "clears the memoize atom in the metadata for dynamic-handler, which causes it to 'un-memoize'"
-  []
-  (log :handler "Resetting Handler")
-  (routing/clear-routes)
-  (app-util/memoize-reset dynamic-handler)))
+;; (defn reset-handler
+;;   "clears the memoize atom in the metadata for dynamic-handler, which causes it to 'un-memoize'"
+;;   []
+;;   (log :handler "Resetting Handler")
+;;   (routing/clear-routes)
+;;   (app-util/memoize-reset dynamic-handler)))
