@@ -57,7 +57,7 @@
   (let [base (deslash slug)
         relevant-pre-actions (get @pre-actions base)
         full-action (wrap-pre-actions relevant-pre-actions action)
-        method (if (empty? method) :get method)
+        method (if (empty? method) :all method)
         method (keyword (string/lower-case (name method)))
         compiled-route (clout/route-compile path)
         route (Route. slug method path compiled-route full-action)]
@@ -114,7 +114,8 @@
   (let [request-method (:request-method request)
         compiled-route (:route route)
         method (:method route)
-        method-matches (or (= method request-method)
+        method-matches (or (= (:all method))
+                           (= method request-method)
                            (and (nil? request-method) (= method :get)))]
     (when method-matches
       (when-let [match-result (clout/route-matches compiled-route request)]
