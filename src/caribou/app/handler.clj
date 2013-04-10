@@ -31,51 +31,43 @@
     (fn [request] ((wrap-resource handler public-dir) request))
     (fn [request] (handler request))))
 
-;; (comment
-;; (defn- pack-routes
-;;   []
-;;   (if (empty? @routing/routes)
-;;     (routing/add-default-route))
-;;   (let [all-routes (routing/routes-in-order @routing/routes)]
-;;     (apply
-;;      routes
-;;      (conj
-;;       (into [] (cons (HEAD "/" [] "") all-routes))
-;;       (route/files "/" {:root (@core-config/app :asset-dir)})
-;;       (route/resources "/")
-;;       (partial error/render-error :404))))))
-
-;; STOLEN/adapted from compojure
 (defn- add-wildcard
   "Add a wildcard to the end of a route path."
   [path]
   (str path (if (.endsWith path "/") "*" "/*")))
 
-(defn resource-handler
-  [options]
+(defn static-handler
+  [options response-fn]
   (fn [request]
     (let [options (merge {:root "public"} options)
           file-path (-> request :route-params :*)]
-      (resource-response file-path options))))
+      (response-fn file-path options))))
 
-(defn resources
-  "A route for serving static files from a directory. Accepts the following
-  keys:
-    :root - the root path where the files are stored. Defaults to 'public'."
-  [routes path & [options]]
-  (routing/add-route
-   :--RESOURCES
-   :get
-   (add-wildcard path)
-   (resource-handler options)))
-;; END stolen
+(defn static
+  [route-key response-fn]
+  (fn [path & [options]]
+    (routing/add-route
+     route-key
+     :get
+     (add-wildcard path)
+     (static-handler options response-fn))))
+
+(def files (static :--ASSETS file-response))
+(def resources (static :--RESOURCES resource-response))
+
+(defn wrap-request-response-cycle
+  [handler]
+  (fn [request]
+    (log/debug request :REQUEST)
+    (let [response (handler request)]
+      (log/debug response :RESPONSE)
+      response)))
 
 (defn init-routes
   []
   (middleware/add-custom-middleware middleware/wrap-xhr-request)
   (let [routes (routing/routes-in-order @routing/routes)]
-    (routing/add-head-routes)
-    (resources routing/routes "/")))
+    (routing/add-head-routes)))
 
 (defn handler
   []
@@ -84,29 +76,3 @@
       (wrap-file-info)
       (wrap-head)))
 
-;; (comment
-;; (defn _dynamic-handler
-;;   "calls the dynamic route generation functions and returns a composite handler"
-;;   []
-;;   (core-config/init)
-;;   (core-model/init)
-;;   (i18n/init)
-;;   (template/init)
-;;   ((:reload-pages @halo/halo-hooks))
-;;   (halo/init)
-;;   (base-handler))
-
-;; (def dynamic-handler (app-util/memoize-visible-atom _dynamic-handler))
-
-;; (defn gen-handler
-;;   "Returns a function that calls our memoized handler on every request"
-;;   []
-;;   (fn [request]
-;;     ((dynamic-handler) request)))
-
-;; (defn reset-handler
-;;   "clears the memoize atom in the metadata for dynamic-handler, which causes it to 'un-memoize'"
-;;   []
-;;   (log :handler "Resetting Handler")
-;;   (routing/clear-routes)
-;;   (app-util/memoize-reset dynamic-handler)))
