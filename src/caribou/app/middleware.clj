@@ -1,5 +1,5 @@
 (ns caribou.app.middleware
-  (:use [caribou.debug :only [log]]))
+  (:require [caribou.logger :as log]))
 
 (defonce middleware (atom []))
 
