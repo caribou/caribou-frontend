@@ -31,38 +31,6 @@
     (fn [request] ((wrap-resource handler public-dir) request))
     (fn [request] (handler request))))
 
-(defn- add-wildcard
-  "Add a wildcard to the end of a route path."
-  [path]
-  (str path (if (.endsWith path "/") "*" "/*")))
-
-(defn static-handler
-  [options response-fn]
-  (fn [request]
-    (let [options (merge {:root "public"} options)
-          file-path (-> request :route-params :*)]
-      (response-fn file-path options))))
-
-(defn static
-  [route-key response-fn]
-  (fn [path & [options]]
-    (routing/add-route
-     route-key
-     :get
-     (add-wildcard path)
-     (static-handler options response-fn))))
-
-(def files (static :--ASSETS file-response))
-(def resources (static :--RESOURCES resource-response))
-
-(defn wrap-request-response-cycle
-  [handler]
-  (fn [request]
-    (log/debug request :REQUEST)
-    (let [response (handler request)]
-      (log/debug response :RESPONSE)
-      response)))
-
 (defn init-routes
   []
   (middleware/add-custom-middleware middleware/wrap-xhr-request)
@@ -72,7 +40,6 @@
 (defn handler
   []
   (-> (routing/router @routing/routes)
-      (middleware/wrap-custom-middleware)
-      (wrap-file-info)
-      (wrap-head)))
+      (middleware/wrap-custom-middleware)))
+
 

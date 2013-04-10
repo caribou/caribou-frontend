@@ -20,6 +20,14 @@
       false)
     false))
 
+(defn wrap-request-diagnostics
+  [handler]
+  (fn [request]
+    (log/debug request :REQUEST)
+    (let [response (handler request)]
+      (log/debug response :RESPONSE)
+      response)))
+
 (defn wrap-xhr-request
   [handler]
   (fn [request]
