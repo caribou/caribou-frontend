@@ -1,12 +1,14 @@
 (ns ^{:skip-wiki true}
   caribou.app.core
   (:require [caribou.config :as config]
+            [caribou.model :as model]
             [caribou.app.handler :as handler]))
 
-(declare app)
+(declare handler)
 
 (defn init
   []
   (config/init)
-  (def app (handler/gen-handler)))
+  (model/init)
+  (def handler (handler/handler)))
 

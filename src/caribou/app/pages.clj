@@ -18,7 +18,6 @@
 
 (defonce actions (ref {}))
 (defonce pages (ref ()))
-(defonce page-map (ref {}))
 
 (defn create-missing-controller-action
   [controller-key action-key]

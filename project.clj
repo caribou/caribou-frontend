@@ -1,7 +1,7 @@
-(defproject antler/caribou-frontend "0.9.23"
+(defproject antler/caribou-frontend "0.10.0"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.4.0"]
-                 [antler/caribou-core "0.9.13"]
+                 [antler/caribou-core "0.10.0"]
                  [clj-time "0.4.4"]
                  [clout "1.1.0"]
                  [antler/antlers "0.5.0"]
@@ -17,7 +17,6 @@
                  [hiccup "1.0.2"]
                  [cheshire "5.0.2"]
                  [org.flatland/ordered "1.4.0"]
-                 [org.clojars.doo/cheshire "2.2.3"]
                  [ns-tracker "0.2.1"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :autodoc {:name "Caribou Frontend"
@@ -25,7 +24,7 @@
             :description
             "This is a routing and template rendering frontend for Caribou Core."}
   :ring {:handler caribou.app.core/handler
-         :servlet-name "caribou-frontend"
          :init caribou.app.core/init
+         :servlet-name "caribou-frontend"
          :port 33333}
   :resources-path "resources")
