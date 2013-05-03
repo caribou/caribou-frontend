@@ -16,9 +16,6 @@
             [caribou.app.routing :as routing]
             [caribou.app.template :as template]))
 
-(defonce actions (ref {}))
-(defonce pages (ref ()))
-
 (defn create-missing-controller-action
   [controller-key action-key]
   (fn [request]
@@ -101,7 +98,7 @@
   "Return a handler that can be configured to reload controller namespaces"
   [page controller-namespace template controller-key action-key protection]
   (let [generated
-        (if (-> @config/app :controller :reload)
+        (if (config/draw :controller :reload)
           (generate-reloading-action controller-namespace controller-key action-key template page)
           (generate-core-action controller-namespace controller-key action-key template page))]
     (if (empty? protection)
@@ -110,7 +107,7 @@
 
 (defn make-route
   [[path slug method]]
-  (let [action (get @actions (routing/deslash slug))]
+  (let [action (get (deref (config/draw :actions)) (routing/deslash slug))]
     (routing/add-route slug method path action)))
 
 (defn divine-protection
@@ -131,8 +128,7 @@
         template (:template page)
         protection (divine-protection page protection)
         full (generate-action page controller-namespace template controller-key action-key protection)]
-    (dosync
-     (alter actions merge {page-slug (middleware full)}))
+    (swap! (config/draw :actions) merge {page-slug (middleware full)})
     (concat
      [[path page-slug method-key]]
      (mapcat #(bind-action % controller-namespace path protection middleware) (:children page)))))
@@ -144,7 +140,7 @@
 (defn generate-page-routes
   "Given a tree of pages construct and return a list of corresponding routes."
   [pages controller-namespace subpath middleware]
-  (let [localization (or (:localize-routes @config/app) "")
+  (let [localization (or (config/draw :app :localize-routes) "")
         path (str subpath localization)
         routes (apply concat (map #(bind-action % controller-namespace path nil middleware) pages))
         direct (map make-route routes)
@@ -155,8 +151,8 @@
 
 (defn all-pages
   []
-  (if (:use-database @config/app)
-    (sql/with-connection @config/db
+  (if (config/draw :app :use-database)
+    (sql/with-connection (config/draw :database)
       (let [rows (model/gather
                   :page
                   {:include {:siphons {}}
@@ -167,8 +163,7 @@
 (defn invoke-pages
   "Call up the pages and arrange them into a tree."
   [tree]
-  (dosync
-   (alter pages (fn [a b] b) tree)))
+  (reset! (config/draw :pages) tree))
 
 (defn empty-middleware
   [handler]
@@ -180,11 +175,11 @@
   ([] (create-page-routes (all-pages)))
   ([tree]
      (invoke-pages tree)
-     (doall (generate-page-routes @pages (-> @config/app :controller :namespace) "" empty-middleware))))
+     (doall (generate-page-routes (deref (config/draw :pages)) (config/draw :controller :namespace) "" empty-middleware))))
 
 (defn add-page-routes
   ([] (add-page-routes (all-pages)))
-  ([pages] (add-page-routes pages (-> @config/app :controller :namespace)))
+  ([pages] (add-page-routes pages (config/draw :controller :namespace)))
   ([pages controller-namespace] (add-page-routes pages controller-namespace ""))
   ([pages controller-namespace subpath] (add-page-routes pages controller-namespace subpath empty-middleware))
   ([pages controller-namespace subpath middleware]
@@ -212,11 +207,11 @@
 
 (defn select-route
   [slug opts]
-  (:route (sort-route-opts @routing/routes slug opts)))
+  (:route (sort-route-opts (deref (config/draw :routes)) slug opts)))
 
 (defn select-query
   [slug opts]
-  (:query (sort-route-opts @routing/routes slug opts)))
+  (:query (sort-route-opts (deref (config/draw :routes)) slug opts)))
 
 (defn reverse-route
   [routes slug opts]
@@ -238,4 +233,4 @@
 
 (defn route-for
   [slug opts]
-  (reverse-route @routing/routes slug opts))
+  (reverse-route (deref (config/draw :routes)) slug opts))

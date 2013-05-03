@@ -7,12 +7,12 @@
 (defn resize-image
   [image opts]
   (let [path (asset/asset-location image)
-        asset-root (@config/app :asset-dir)
+        asset-root (config/draw :assets :dir)
         lichen-path (str "/" lichen/lichen-root path)
         queries (lichen/query-string opts)
         target (lichen/lichen-uri lichen-path queries "")]
     (lichen/lichen-resize lichen-path opts asset-root)
-    (str (@config/app :asset-root) "/" target)))
+    (str (config/draw :assets :root) "/" target)))
 
 (defn route-for [slug params & additional]
   (pages/route-for slug (apply merge (cons params additional))))

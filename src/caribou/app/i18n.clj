@@ -10,8 +10,8 @@
 (def ^{:dynamic true} *current-locale*)
 (def ^{:dynamic true} forced-locale nil)
 (declare load-resources)
-(def locales (atom ()))
-(def resource-map (atom {}))
+;; (def locales (atom ()))
+;; (def resource-map (atom {}))
 
 (def resources
   (delay (do (load-resources) resource-map)))
@@ -25,20 +25,19 @@
   "Loads translations and locales from the DB."
   []
   (let [translations (util/query "select i.*, l.code from i18n i inner join locale l on (l.id=i.locale_id) order by resource_key")
-        resource-keys (distinct (map #(% :resource_key) translations))]
-    (swap! locales concat (map #(% :code) (util/query "select code from locale")))
-        
+        resource-keys (distinct (map #(% :resource-key) translations))]
+    (swap! (config/draw :i18n :locales) concat (map #(% :code) (util/query "select code from locale")))
+    
     (doseq [resource-key resource-keys]
-      (let [key-matches (filter #(= (% :resource_key) resource-key) translations)
+      (let [key-matches (filter #(= (% :resource-key) resource-key) translations)
             translations (apply hash-map (mapcat (fn [_] (list (_ :code) (_ :value))) key-matches))]
-        (swap! resource-map assoc resource-key translations))))
-    @resource-map)
+        (swap! (config/draw :i18n :resource-map) assoc resource-key translations))))
+  (deref (config/draw :i18n :resource-map)))
 
 (defn get-default-locale
   "Gets the default locale from the app config.  Falls back to en_US"
   []
-  (or (config/app :default-locale)
-                  "en_US"))
+  (or (config/draw :app :default-locale) "en_US"))
 
 (defn ^{:dynamic true} user-locale-func 
   "The function that will be called whenever a translation is requested.  
@@ -101,11 +100,10 @@
 
 (defn init
   []
-  (if (@config/app :i18n-enabled)
+  (if (config/draw :app :i18n-enabled)
     (do
-      (if (@config/app :halo-enabled)
+      (if (config/draw :halo :enabled)
         (do 
           (halo/append-route "GET" "reload-i18n" (fn [request] (load-resources) "i18n Reloaded"))))
-
       (middleware/add-custom-middleware wrap-i18n get-locale)
       (template/register-helper "_" get-resource))))

@@ -10,11 +10,8 @@
         [ring.middleware.session :only (wrap-session)]
         [ring.util.response :only (resource-response file-response)])
   (:require [caribou.util :as util]
-            [caribou.config :as core-config]
-            [caribou.model :as core-model]
-            [caribou.db :as core-db]
-            [caribou.app.halo :as halo]
-            [caribou.app.i18n :as i18n]
+            [caribou.config :as config]
+            [caribou.core :as caribou]
             [caribou.app.middleware :as middleware]
             [caribou.app.pages :as pages]
             [caribou.app.error :as error]
@@ -34,12 +31,20 @@
 (defn init-routes
   []
   (middleware/add-custom-middleware middleware/wrap-xhr-request)
-  (let [routes (routing/routes-in-order @routing/routes)]
+  (let [routes (routing/routes-in-order (deref (config/draw :routes)))]
     (routing/add-head-routes)))
+
+(defn wrap-caribou
+  [handler config]
+  (fn [request]
+    (caribou/with-caribou config
+      (handler request))))
 
 (defn make-handler
   [& args]
-  (-> (routing/router @routing/routes)
+  (init-routes)
+  (template/init)
+  (-> (routing/router (deref (config/draw :routes)))
       (middleware/wrap-custom-middleware)))
 
 (defn handler

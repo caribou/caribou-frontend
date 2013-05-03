@@ -1,16 +1,17 @@
 (ns caribou.app.middleware
-  (:require [caribou.logger :as log]))
-
-(defonce middleware (atom []))
+  (:require [caribou.logger :as log]
+            [caribou.config :as config]))
 
 (defn wrap-custom-middleware [handler]
-  (reduce (fn [cur [func args]] (apply func cur args))
-          handler
-          (seq @middleware)))
+  (reduce
+   (fn [cur [func args]]
+     (apply func cur args))
+   handler
+   (seq (deref (config/draw :middleware)))))
 
 (defn add-custom-middleware
   [func & args]
-  (swap! middleware conj [func args]))
+  (swap! (config/draw :middleware) conj [func args]))
 
 (defn is-xhr?
   [request]

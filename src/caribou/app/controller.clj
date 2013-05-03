@@ -4,21 +4,6 @@
             [caribou.logger :as log]
             [caribou.util :as util]))
 
-(def session-canary
-  "return true from session-canary in order to trigger an exception,
-the arg passed will be the session
-
-we could use set-validator here, but there are many ways to be wrong,
-and only one way to be right"
-  (ref (constantly false)))
-
-;; example: throw an exception, print session, and force a stack trace whenever
-;; render is called:
-;;; (dosync (ref-set caribou.app.controller/session-canary identity))
-
-
-(def session-defaults (atom {}))
-
 (defn load-namespace
   [paths])
 
@@ -52,13 +37,11 @@ and only one way to be right"
 (defn render
   "Render the template corresponding to this page and return a proper response."
   ([content-type params]
-     (render (assoc params
-               :content-type (content-type content-map)
-               :template json-template)))
+     (render
+      (assoc params
+        :content-type (content-type content-map)
+        :template json-template)))
   ([params]
-     (when-let [condition (@session-canary params)]
-       (throw (Exception.
-               (str "session canary reported an error: " condition))))
      (let [template (or (:template params) default-template)
            content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html;charset=utf-8")
            headers (merge (or (:headers params) {}) {"Content-Type" content-type})

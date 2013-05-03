@@ -9,23 +9,20 @@
             [caribou.app.error :as error]
             [caribou.app.template :as template]
             [caribou.app.util :as app-util]
-            [caribou.config :as config]
             [caribou.logger :as log]
+            [caribou.config :as config]
             [caribou.util :as util]))
-
-(defonce routes (atom (flatland/ordered-map)))
-(defonce pre-actions (atom {}))
 
 (defrecord Route [slug method path route action])
 
 ;; these are backwards because we nest the func in reverse order
 (defn prepend-pre-action
   [slug pre-action]
-  (swap! pre-actions update-in [(keyword slug)] #(concat % [pre-action])))
+  (swap! (config/draw :pre-actions) update-in [(keyword slug)] #(concat % [pre-action])))
 
 (defn append-pre-action
   [slug pre-action]
-  (swap! pre-actions update-in [(keyword slug)] (partial cons pre-action)))
+  (swap! (config/draw :pre-actions) update-in [(keyword slug)] (partial cons pre-action)))
 
 (defn register-pre-action
   ([slug pre-action]
@@ -55,7 +52,7 @@
 (defn merge-route
   [routes slug method path action]
   (let [base (deslash slug)
-        relevant-pre-actions (get @pre-actions base)
+        relevant-pre-actions (get (deref (config/draw :pre-actions)) base)
         full-action (wrap-pre-actions relevant-pre-actions action)
         method (if (empty? method) :all method)
         method (keyword (string/lower-case (name method)))
@@ -66,7 +63,7 @@
 (defn add-route
   [slug method path action]
   (log/debug (format "adding route %s : %s -- %s %s " slug (deslash slug) path method) :routing)
-  (swap! routes merge-route slug method path action))
+  (swap! (config/draw :routes) merge-route slug method path action))
 
 (defn routes-in-order
   [routes]
@@ -75,11 +72,11 @@
 (defn clear-routes!
   "Clears the app's routes. Used by Halo to update the routes."
   []
-  (reset! routes {}))
+  (reset! (config/draw :routes) {}))
 
 (defn clear-pre-actions!
   []
-  (reset! pre-actions {}))
+  (reset! (config/draw :pre-actions) {}))
 
 (def built-in-formatter (formatters :basic-date-time))
 
@@ -107,7 +104,7 @@
      
 (defn add-head-routes
   []
-  (swap! routes merge-head-routes))
+  (swap! (config/draw :routes) merge-head-routes))
 
 (defn route-matches?
   [request route]

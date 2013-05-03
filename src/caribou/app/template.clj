@@ -7,9 +7,6 @@
             [antlers.core :as antlers]
             [antlers.parser :as parser]))
 
-(def templates (ref {}))
-(def helpers (atom {}))
-
 (defn default-template
   [path]
   (fn [params]
@@ -39,11 +36,11 @@
 
 (defn register-helper
   [helper-name helper]
-  (swap! helpers assoc helper-name helper))
+  (swap! (config/draw :template :helpers) assoc helper-name helper))
 
 (defn init
   []
-  (let [cache-strategy (get @config/app :cache-templates)]
+  (let [cache-strategy (config/draw :template :cache-strategy)]
     (condp = cache-strategy
       :never (parser/set-cache-policy parser/cache-never)
       :always (parser/set-cache-policy parser/cache-forever)

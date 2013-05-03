@@ -1,21 +1,18 @@
 (ns caribou.app.error
   (:require [clojure.java.io :as io]
-            [caribou.config :as config]
             [caribou.logger :as logger]
             [caribou.util :as util]
+            [caribou.config :as config]
             [caribou.app.controller :as controller]
             [caribou.app.template :as template]))
 
-(defonce error-handlers (atom {}))
-(defonce error-templates (atom {}))
-  
 (defn register-error-handler
   [err f]
-  (swap! error-handlers merge {err f}))
+  (swap! (config/draw :error :handlers) merge {err f}))
 
 (defn register-error-template
   [err temp]
-  (swap! error-templates merge {err temp}))
+  (swap! (config/draw :error :templates) merge {err temp}))
 
 (defn default-handler
   [request]
@@ -36,7 +33,7 @@
 
 (defn render-error 
   [err request]
-  (let [err-handler (or (err @error-handlers) default-handler)
-        err-template (or (err @error-templates) (find-error-template err))
+  (let [err-handler (or (get (deref (config/draw :error :handlers)) err) default-handler)
+        err-template (or (get (deref (config/draw :error :templates)) err) (find-error-template err))
         err-request (assoc request :status (read-string (name err)) :template (template/find-template err-template))]
     (err-handler err-request)))
