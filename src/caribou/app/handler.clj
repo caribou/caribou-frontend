@@ -37,9 +37,22 @@
   (let [routes (routing/routes-in-order @routing/routes)]
     (routing/add-head-routes)))
 
-(defn handler
-  []
+(defn make-handler
+  [& args]
   (-> (routing/router @routing/routes)
       (middleware/wrap-custom-middleware)))
 
+(defn handler
+  [reset]
+  (let [handle (ref (make-handler))]
+    (fn [request]
+      (condp = request
+        :reset (do
+                 (reset)
+                 (dosync (alter handle make-handler)))
+        (@handle request)))))
 
+(defn reset-handler
+  [handler]
+  (handler :reset)
+  handler)
