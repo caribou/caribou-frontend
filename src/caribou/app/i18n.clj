@@ -10,11 +10,9 @@
 (def ^{:dynamic true} *current-locale*)
 (def ^{:dynamic true} forced-locale nil)
 (declare load-resources)
-;; (def locales (atom ()))
-;; (def resource-map (atom {}))
 
 (def resources
-  (delay (do (load-resources) resource-map)))
+  (delay (do (load-resources) (deref (config/draw :i18n :resource-map)))))
 
 (defn current-locale
   "Returns the locale in the current thread"

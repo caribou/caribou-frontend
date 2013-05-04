@@ -98,7 +98,7 @@
    (fn [added route]
      (let [route-slug (keyword (str "--HEAD-" (name (:slug route))))
            route-re (-> route :route :re)]
-       (merge-route added route-slug :head (str route-re) (fn [req] ""))))
+       (merge-route added route-slug "HEAD" (str route-re) (fn [req] ""))))
    routes
    (routes-in-order routes)))
      
