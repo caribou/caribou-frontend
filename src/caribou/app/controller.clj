@@ -10,10 +10,12 @@
 (defn get-controller-namespace
   [controller-ns controller-key]
   (if controller-key
-    (let [full-controller-ns-name (str controller-ns "." controller-key)
-          full-controller-ns (symbol full-controller-ns-name)]
+    (try
+      (let [full-controller-ns-name (str controller-ns "." controller-key)
+            full-controller-ns (symbol full-controller-ns-name)]
         (require :reload full-controller-ns)
-        (find-ns full-controller-ns))))
+        (find-ns full-controller-ns))
+      (catch Exception e nil))))
 
 (defn get-controller-action
   "Find the function corresponding to the given controller namespace and

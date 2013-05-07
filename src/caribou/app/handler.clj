@@ -1,6 +1,5 @@
 (ns caribou.app.handler
-  (:use caribou.debug
-        [ring.middleware.content-type :only (wrap-content-type)]
+  (:use [ring.middleware.content-type :only (wrap-content-type)]
         [ring.middleware.file :only (wrap-file)]
         [ring.middleware.resource :only (wrap-resource)]
         [ring.middleware.file-info :only (wrap-file-info)]
@@ -9,7 +8,8 @@
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
         [ring.middleware.session :only (wrap-session)]
         [ring.util.response :only (resource-response file-response)])
-  (:require [caribou.util :as util]
+  (:require [flatland.ordered.map :as flatland]
+            [caribou.util :as util]
             [caribou.config :as config]
             [caribou.core :as caribou]
             [caribou.app.middleware :as middleware]
@@ -49,15 +49,13 @@
 
 (defn handler
   [reset]
-  (let [handle (ref (make-handler))]
-    (fn [request]
-      (condp = request
-        :reset (do
-                 (reset)
-                 (dosync (alter handle make-handler)))
-        (@handle request)))))
+  (reset! (config/draw :handler) (make-handler))
+  (reset! (config/draw :reset) reset)
+  (fn [request]
+    ((deref (config/draw :handler)) request)))
 
 (defn reset-handler
-  [handler]
-  (handler :reset)
-  handler)
+  []
+  (reset! (config/draw :routes) (flatland/ordered-map))
+  ((deref (config/draw :reset)))
+  (reset! (config/draw :handler) (make-handler)))

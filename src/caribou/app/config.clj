@@ -17,6 +17,8 @@
                     :actions (atom {})
                     :pages (atom ())
                     :routes (atom (flatland/ordered-map))
+                    :handler (atom nil)
+                    :reset (atom nil)
                     :pre-actions (atom {})
                     :template {:helpers (atom {})
                                :cache-strategy :never}

@@ -151,14 +151,11 @@
 
 (defn all-pages
   []
-  (if (config/draw :app :use-database)
-    (sql/with-connection (config/draw :database)
-      (let [rows (model/gather
-                  :page
-                  {:include {:siphons {}}
-                   :order {:position :asc}})]
-        (model/arrange-tree rows)))
-    []))
+  (let [rows (model/gather
+              :page
+              {:include {:siphons {}}
+               :order {:position :asc}})]
+    (model/arrange-tree rows)))
 
 (defn invoke-pages
   "Call up the pages and arrange them into a tree."
