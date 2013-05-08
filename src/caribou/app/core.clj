@@ -7,17 +7,17 @@
 
 (declare handler)
 
-(defn init
-  []
-  (let [config (app-config/default-config)
-        config (caribou/init config)]
-    (def handler
-      (caribou/with-caribou config
-        (-> (handler/handler identity)
-            (handler/wrap-caribou config))))))
-
 (defn environment-config
   []
   (let [default (app-config/default-config)
         config (config/config-from-environment default)]
     (caribou/init config)))
+
+(defn init
+  []
+  (let [config (environment-config)]
+    (def handler
+      (caribou/with-caribou config
+        (-> (handler/handler identity)
+            (handler/wrap-caribou config))))))
+
