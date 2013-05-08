@@ -19,4 +19,5 @@
 
 (def helpers
   {:resize resize-image
-   :route-for route-for})
+   :route-for route-for
+   :equals =})
