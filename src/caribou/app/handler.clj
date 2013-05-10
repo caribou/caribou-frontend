@@ -49,13 +49,19 @@
 
 (defn handler
   [reset]
-  (reset! (config/draw :handler) (make-handler))
-  (reset! (config/draw :reset) reset)
-  (fn [request]
-    ((deref (config/draw :handler)) request)))
+  (let [handler (make-handler)]
+    (reset! (config/draw :handler) handler)
+    (reset! (config/draw :reset) reset)
+    (fn [request]
+      (let [handler (deref (config/draw :handler))]
+        (handler request)))))
+
+(defn trigger-reset
+  []
+  ((deref (config/draw :reset))))
 
 (defn reset-handler
   []
   (reset! (config/draw :routes) (flatland/ordered-map))
-  ((deref (config/draw :reset)))
+  (trigger-reset)
   (reset! (config/draw :handler) (make-handler)))
