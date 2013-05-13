@@ -15,7 +15,9 @@
             full-controller-ns (symbol full-controller-ns-name)]
         (require :reload full-controller-ns)
         (find-ns full-controller-ns))
-      (catch Exception e nil))))
+      (catch Exception e
+        (log/out :REQUIRE_CONTROLLER_ERROR (str "for namespace " controller-ns "." controller-key))
+        (log/render-exception e)))))
 
 (defn get-controller-action
   "Find the function corresponding to the given controller namespace and
