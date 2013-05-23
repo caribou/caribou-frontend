@@ -42,25 +42,30 @@
         (constantly 1) "right now"))))
 
 ;; pull date and time bits out of a date-field
-(defn date-year [m key]
+(defn date-year
+  [m key]
   (if-let [date (-> key keyword m)]
     (+ (. date getYear) 1900)
     nil))
 
-(defn date-month [m key]
+(defn date-month
+  [m key]
   (if-let [date (-> key keyword m)]
     (+ (. date getMonth) 1)
     nil))
 
-(defn date-day [m key]
+(defn date-day
+  [m key]
   (if-let [date (-> key keyword m)]
     (+ (. date getDate))
     nil))
 
-(defn current-date []
+(defn current-date
+  []
   (model/current-timestamp))
 
-(defn yyyy-mm-dd [m key]
+(defn yyyy-mm-dd
+  [m key]
   (let [frm (java.text.SimpleDateFormat. "yyyy-MM-dd")
         date (-> key keyword m)]
     (if-not (nil? date)
@@ -68,12 +73,14 @@
       nil)))
 
 ; this is nonsense
-(defn yyyy-mm-dd-or-current [m key]
+(defn yyyy-mm-dd-or-current
+  [m key]
   (if-let [date-string (yyyy-mm-dd m key)]
     date-string
     (yyyy-mm-dd {:d (current-date)} :d)))
 
-(defn hh-mm [m key]
+(defn hh-mm
+  [m key]
   (if-let [date (-> key keyword m)]
     (.format (java.text.SimpleDateFormat. "HH:mm") date)
     "00:00"))
@@ -94,7 +101,8 @@
     (resize-image image opts)
     ""))
 
-(defn route-for [slug params & additional]
+(defn route-for
+  [slug params & additional]
   (pages/route-for slug (apply merge (cons params additional))))
 
 (defn safe-route-for
