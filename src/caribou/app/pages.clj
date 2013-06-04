@@ -113,7 +113,8 @@
 (defn divine-protection
   [page protection]
   (if (:protected page)
-    (select-keys page [:username :password])
+    {:username (:username page)
+     :password (:crypted-password page)}
     protection))
 
 (defn bind-action
