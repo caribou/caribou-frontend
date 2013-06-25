@@ -26,13 +26,10 @@
   "Given the controller-key and action-key, return the function that is correspondingly defined by a controller."
   [controller-namespace controller-key action-key]
   (if-let [found-namespace (controller/get-controller-namespace controller-namespace controller-key)]
-    (let [controller-action (controller/get-controller-action found-namespace action-key)]
-      (if controller-action
-        (if (nil? controller-action)
-          routing/default-action
-          controller-action)
-        (create-missing-controller-action controller-key action-key)))
-    (create-missing-controller-action controller-key action-key)))
+    (if-let [controller-action (controller/get-controller-action found-namespace action-key)]
+      controller-action
+      routing/default-action)
+    routing/default-action))
 
 (defn placeholder?
   [el]
