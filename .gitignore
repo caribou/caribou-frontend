@@ -11,3 +11,4 @@
 /config
 /resources/config
 /autodoc
+.lein-repl-history
