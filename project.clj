@@ -5,7 +5,7 @@
                  [clj-time "0.4.4"]
                  [clout "1.1.0"]
                  [antler/antlers "0.5.2"]
-                 [antler/lichen "0.3.3"]
+                 [antler/lichen "0.3.5"]
                  [fuziontech/ring-json-params "0.2.0" :exclusions [cheshire]]
                  [ring "1.1.6"
                   :exclusions [org.clojure/clojure

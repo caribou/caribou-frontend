@@ -85,15 +85,28 @@
     (.format (java.text.SimpleDateFormat. "HH:mm") date)
     "00:00"))
 
+(defn resize-image-
+  [image opts]
+  (let [;; get input location
+        path (asset/asset-location image)
+        ;; calculate resized location
+        asset-root (config/draw :assets :dir)
+        lichen-path (lichen/pathify ["" lichen/lichen-root path])
+        ;; get opts for resize
+        queries (lichen/query-string opts)
+        ;; calculate resized location
+        target (lichen/lichen-uri lichen-path queries "")]
+     (lichen/lichen-resize lichen-path opts asset-root)
+     ;; return URI of resized image
+     (lichen/pathify [(config/draw :assets :root) target])))
+
 (defn resize-image
   [image opts]
-  (let [path (asset/asset-location image)
-        asset-root (config/draw :assets :dir)
-        lichen-path (str "/" lichen/lichen-root path)
-        queries (lichen/query-string opts)
-        target (lichen/lichen-uri lichen-path queries "")]
-    (lichen/lichen-resize lichen-path opts asset-root)
-    (str (config/draw :assets :root) "/" target)))
+  (if-not (config/draw :aws :bucket)
+    (resize-image- image opts)
+    (lichen/lichen-resize-s3 image opts
+                             (config/draw :assets :prefix)
+                             (config/draw :aws :credentials))))
 
 (defn safer-resize-image
   [image opts]
