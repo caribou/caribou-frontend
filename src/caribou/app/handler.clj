@@ -9,6 +9,8 @@
         [ring.middleware.session :only (wrap-session)]
         [ring.util.response :only (resource-response file-response)])
   (:require [flatland.ordered.map :as flatland]
+            [clojure.string :as string]
+            [caribou.logger :as log]
             [caribou.util :as util]
             [caribou.config :as config]
             [caribou.core :as caribou]
@@ -38,7 +40,15 @@
   [handler config]
   (fn [request]
     (caribou/with-caribou config
-      (handler request))))
+      (try 
+        (handler request)
+        (catch Exception e 
+          (let [trace (.getStackTrace e)
+                stack (map #(str "ERROR    |--> " %) trace)]
+            (log/error (string/join "\n" (cons (str e) stack)))
+            (if (config/draw :error :show-stacktrace)
+              (throw e)
+              (error/render-error :500 request))))))))
 
 (defn make-handler
   [& args]

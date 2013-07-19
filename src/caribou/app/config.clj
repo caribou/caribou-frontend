@@ -23,7 +23,8 @@
                     :template {:helpers (atom {})
                                :cache-strategy :never}
                     :error {:handlers (atom {})
-                            :templates (atom {})}
+                            :templates (atom {})
+                            :show-stacktrace false}
                     :i18n {:enabled false
                            :locales (atom ())
                            :resource-map (atom {})}
