@@ -102,11 +102,12 @@
 
 (defn resize-image
   [image opts]
-  (if-not (config/draw :aws :bucket)
-    (resize-image- image opts)
-    (lichen/lichen-resize-s3 image opts
-                             (config/draw :assets :prefix)
-                             (config/draw :aws :credentials))))
+  (let [opts (assoc-in opts [:quality] #(or % 0.8))]
+    (if-not (config/draw :aws :bucket)
+      (resize-image- image opts)
+      (lichen/lichen-resize-s3 image opts
+                               (config/draw :assets :prefix)
+                               (config/draw :aws :credentials)))))
 
 (defn safer-resize-image
   [image opts]
