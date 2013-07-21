@@ -103,7 +103,7 @@
 
 (defn resize-image
   [image opts]
-  (let [opts (assoc-in opts [:quality] #(or % 0.8))]
+  (let [opts (update-in opts [:quality] #(or % 0.8))]
     (if-not (config/draw :aws :bucket)
       (resize-image- image opts)
       (lichen/lichen-resize-s3 image opts
