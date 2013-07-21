@@ -1,11 +1,11 @@
-(defproject antler/caribou-frontend "0.11.27-S3-HTTP-FIX"
+(defproject antler/caribou-frontend "0.11.29"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [antler/caribou-core "0.11.24"]
                  [clj-time "0.4.4"]
                  [clout "1.1.0"]
                  [antler/antlers "0.5.2"]
-                 [antler/lichen "0.3.5"]
+                 [antler/lichen "0.4.1"]
                  [fuziontech/ring-json-params "0.2.0" :exclusions [cheshire]]
                  [ring "1.1.6"
                   :exclusions [org.clojure/clojure

@@ -3,6 +3,7 @@
             [caribou.config :as config]
             [caribou.app.pages :as pages]
             [lichen.core :as lichen]
+            [lichen.path :as lichen-path]
             [caribou.field.timestamp :as stamp]
             [caribou.model :as model]
             [clojure.string :as string]
@@ -91,14 +92,14 @@
         path (asset/asset-location image)
         ;; calculate resized location
         asset-root (config/draw :assets :dir)
-        lichen-path (lichen/pathify ["" lichen/lichen-root path])
+        lichen-path (lichen-path/pathify ["" lichen-path/lichen-root path])
         ;; get opts for resize
-        queries (lichen/query-string opts)
+        queries (lichen-path/query-string opts)
         ;; calculate resized location
-        target (lichen/lichen-uri lichen-path queries "")]
+        target (lichen-path/lichen-uri lichen-path queries "")]
      (lichen/lichen-resize lichen-path opts asset-root)
      ;; return URI of resized image
-     (lichen/pathify [(config/draw :assets :root) target])))
+     (lichen-path/pathify [(config/draw :assets :root) target])))
 
 (defn resize-image
   [image opts]
