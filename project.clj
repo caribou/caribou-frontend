@@ -1,11 +1,11 @@
-(defproject antler/caribou-frontend "0.11.29-P1"
+(defproject antler/caribou-frontend "0.11.29-P2"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [antler/caribou-core "0.11.24"]
                  [clj-time "0.4.4"]
                  [clout "1.1.0"]
                  [antler/antlers "0.5.2"]
-                 [antler/lichen "0.4.1"]
+                 [antler/lichen "0.4.2-IMAGE-OPS"]
                  [fuziontech/ring-json-params "0.2.0" :exclusions [cheshire]]
                  [ring "1.1.6"
                   :exclusions [org.clojure/clojure

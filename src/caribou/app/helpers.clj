@@ -106,7 +106,8 @@
   (let [opts (update-in opts [:quality] #(or % 0.8))]
     (if-not (config/draw :aws :bucket)
       (resize-image- image opts)
-      (lichen/lichen-resize-s3 image opts
+      (lichen/lichen-resize-s3 (or (:path image) image)
+                               opts
                                (config/draw :assets :prefix)
                                (config/draw :aws :credentials)))))
 
