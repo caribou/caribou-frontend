@@ -25,6 +25,11 @@
                     :error {:handlers (atom {})
                             :templates (atom {})
                             :show-stacktrace false}
+                    :cljs {:root "resources/cljs"
+                           :reload false
+                           :options 
+                           {:output-dir "resources/public/js/out"
+                            :pretty-print true}}
                     :i18n {:enabled false
                            :locales (atom ())
                            :resource-map (atom {})}
