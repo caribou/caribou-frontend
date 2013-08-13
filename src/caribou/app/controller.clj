@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [cheshire.core :as json]
             [caribou.logger :as log]
-            [caribou.util :as util]))
+            [caribou.util :as util]
+            [caribou.app.format :as format]))
 
 (defn load-namespace
   [paths])
@@ -26,25 +27,23 @@
   (if action-key
     (ns-resolve controller-ns (symbol action-key))))
 
-(def content-map
-  {:json "application/json"
-   :text/plain "text/plain"})
-
 (defn default-template
   [params]
   (str params))
 
-(defn json-template
-  [params]
-  (json/generate-string (dissoc params :content-type :template :session :status)))
+(defn format-template
+  [format params]
+  (let [handler (format/format-handlers (keyword format) params)]
+    (fn [request]
+      (handler (dissoc request :content-type :template :session :status) params))))
 
 (defn render
   "Render the template corresponding to this page and return a proper response."
-  ([content-type params]
+  ([format params]
      (render
       (assoc params
-        :content-type (content-type content-map)
-        :template json-template)))
+        :content-type (get format/content-map (keyword format))
+        :template (or (format-template format params) str))))
   ([params]
      (let [template (or (:template params) default-template)
            content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html;charset=utf-8")

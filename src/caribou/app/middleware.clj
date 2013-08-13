@@ -32,7 +32,9 @@
 (defn wrap-xhr-request
   [handler]
   (fn [request]
-    (handler (assoc request :is_xhr (is-xhr? request)))))
+    (handler 
+     (assoc request 
+       :is-xhr (is-xhr? request)))))
 
 (defn wrap-servlet-path-info
   "Removes the deployed servlet context from the request URI when running as a war"

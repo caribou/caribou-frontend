@@ -134,6 +134,7 @@
 
 (def helpers
   {:ago ago
+   :now current-date
    :current-date current-date
    :date-year date-year
    :date-month date-month
@@ -143,9 +144,9 @@
    :yyyy-mm-dd-or-current yyyy-mm-dd-or-current
    :equals =
    :linebreak linebreak
-   :resize resize-image
-   :route-for route-for
-   :safer-resize safer-resize-image
-   :safe-route-for safe-route-for
+   :resize safer-resize-image
+   :route-for safe-route-for
+   ;; :safer-resize safer-resize-image
+   ;; :safe-route-for safe-route-for
    :smartquote smartquote
    :truncate truncate})
