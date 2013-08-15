@@ -229,3 +229,21 @@
 (defn route-for
   [slug opts]
   (reverse-route (deref (config/draw :routes)) slug opts))
+
+(declare build-page-tree)
+
+(defn build-page
+  [route pages]
+  (let [[path key subroutes] route
+        methods (get pages key)
+        children (build-page-tree subroutes pages)
+        spec {:path path :slug key}
+        method-pages (mapv
+                      (fn [method]
+                        (merge (assoc spec :method method) (get methods method)))
+                      (keys methods))]
+    (assoc-in method-pages [0 :children] children)))
+
+(defn build-page-tree
+  [routes pages]
+  (mapcat #(build-page % pages) routes))
