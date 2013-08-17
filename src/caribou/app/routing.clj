@@ -54,7 +54,7 @@
   (let [base (deslash slug)
         relevant-pre-actions (get (deref (config/draw :pre-actions)) base)
         full-action (wrap-pre-actions relevant-pre-actions action)
-        method (if (empty? method) :all method)
+        method (if (or (nil? method) (and (string? method) (empty? method))) :ALL method)
         method (keyword (string/lower-case (name method)))
         compiled-route (clout/route-compile path)
         route (Route. slug method path compiled-route full-action)]
