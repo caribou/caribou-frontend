@@ -28,8 +28,12 @@
   (if-let [found-namespace (controller/get-controller-namespace controller-namespace controller-key)]
     (if-let [controller-action (controller/get-controller-action found-namespace action-key)]
       controller-action
-      routing/default-action)
-    routing/default-action))
+      (do
+        (log/info (format "No action named %s in %s!" action-key controller-key))
+        routing/default-action))
+    (do
+      (log/info (format "No controller namespace named %s.%s!" controller-namespace controller-key))
+      routing/default-action)))
 
 (defn placeholder?
   [el]
