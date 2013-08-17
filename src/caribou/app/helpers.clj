@@ -2,6 +2,7 @@
   (:require [caribou.asset :as asset]
             [caribou.config :as config]
             [caribou.app.pages :as pages]
+            [lichen.path :as path]
             [lichen.core :as lichen]
             [caribou.field.timestamp :as stamp]
             [caribou.model :as model]
@@ -89,9 +90,9 @@
   [image opts]
   (let [path (asset/asset-location image)
         asset-root (config/draw :assets :dir)
-        lichen-path (str "/" lichen/lichen-root path)
-        queries (lichen/query-string opts)
-        target (lichen/lichen-uri lichen-path queries "")]
+        lichen-path (str "/" path/lichen-root path)
+        queries (path/query-string opts)
+        target (path/lichen-uri lichen-path queries "")]
     (lichen/lichen-resize lichen-path opts asset-root)
     (str (config/draw :assets :root) "/" target)))
 
