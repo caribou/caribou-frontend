@@ -81,13 +81,13 @@
 
 (defn generate-reloading-action
   [controller-namespace controller-key action-key template page]
-  (let [watched-namespaces (ns-tracker ["src"])]
+  ;; (let [watched-namespaces (ns-tracker ["src"])]
     (fn [request]
-      (doseq [ns-sym (watched-namespaces)]
-        (require :reload ns-sym))
+      ;; (doseq [ns-sym (watched-namespaces)]
+      ;;   (require :reload ns-sym))
       (let [action (retrieve-controller-action controller-namespace controller-key action-key)
             found-template (template/find-template (or template (page :template)))]
-        (action (merge request {:template found-template :page (draw-siphons page request)}))))))
+        (action (merge request {:template found-template :page (draw-siphons page request)})))))
 
 (defn protect-action
   [action protection]
@@ -241,7 +241,8 @@
   (let [[path key subroutes] route
         methods (get pages key)
         children (build-page-tree subroutes pages)
-        spec {:path path :slug key}
+        spec {:path (string/replace path #"^/" "") 
+              :slug key}
         method-pages (mapv
                       (fn [method]
                         (merge (assoc spec :method method) (get methods method)))

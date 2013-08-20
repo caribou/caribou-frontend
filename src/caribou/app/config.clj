@@ -2,7 +2,6 @@
   (:require [flatland.ordered.map :as flatland]
             [caribou.util :as util]
             [caribou.config :as config]
-            [caribou.model :as model]
             [caribou.app.pages :as pages]))
 
 (defn default-config

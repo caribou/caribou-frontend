@@ -131,7 +131,10 @@
       (if match
         (let [request (assoc request :route-params match)
               request (update-in request [:params] #(merge % match))
-              action (:action route)
-              response (action request)]
-          response)
+              action (:action route)]
+          (if action
+            (action request)
+            (do 
+              (log/info (format "No action for route %s %s: %s!" (:method route) (:path route) (:slug route)))
+              (default-action request))))
         (error/render-error :404 request)))))
