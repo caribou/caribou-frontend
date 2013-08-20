@@ -145,9 +145,9 @@
    :yyyy-mm-dd-or-current yyyy-mm-dd-or-current
    :equals =
    :linebreak linebreak
-   :resize safer-resize-image
-   :route-for safe-route-for
-   ;; :safer-resize safer-resize-image
-   ;; :safe-route-for safe-route-for
+   :resize resize-image
+   :route-for route-for
+   :safer-resize safer-resize-image
+   :safe-route-for safe-route-for
    :smartquote smartquote
    :truncate truncate})
