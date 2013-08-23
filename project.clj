@@ -1,4 +1,4 @@
-(defproject antler/caribou-frontend "0.12.1"
+(defproject antler/caribou-frontend "0.12.2"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/clojurescript "0.0-1450"]
@@ -7,12 +7,12 @@
                  [clout "1.1.0"]
                  [antler/antlers "0.5.2"]
                  [antler/lichen "0.4.6"]
-                 [fuziontech/ring-json-params "0.2.0" :exclusions [cheshire]]
-                 [ring "1.1.6"
+                 [ring/ring-json "0.2.0" :exclusions [cheshire]]
+                 [ring "1.2.0"
                   :exclusions [org.clojure/clojure
                                clj-stacktrace
                                hiccup]]
-                 [ring/ring-core "1.1.6" :exclusions [commons-io]]
+                 [ring/ring-core "1.2.0" :exclusions [commons-io]]
                  [ring-basic-authentication "1.0.1"]
                  [clj-stacktrace "0.2.5"]
                  [hiccup "1.0.2"]
