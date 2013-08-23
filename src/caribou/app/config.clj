@@ -34,18 +34,6 @@
                            :resource-map (atom {})}
                     :middleware (atom [])}]
 
-                    ;; :halo {:enabled true
-                    ;;        :hosts ["http://localhost:33333"]
-                    ;;        :key "halo-caribou"
-                    ;;        :prefix "/_halo"
-                    ;;        :hooks (atom {:reload-pages pages/create-page-routes
-                    ;;                      :reload-models model/invoke-models
-                    ;;                      :reload-halo halo/generate-routes
-                    ;;                      :halo-reset identity})
-                    ;;        :routes (atom [["GET" "reload-routes" reload-pages]
-                    ;;                       ["GET" "reload-halo" reload-halo]
-                    ;;                       ["GET" "reload-models" reload-models]])}}]
-
     (util/deep-merge-with
      (fn [& args]
        (last args))
