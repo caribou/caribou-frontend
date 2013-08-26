@@ -252,3 +252,18 @@
 (defn build-page-tree
   [routes pages]
   (mapcat #(build-page % pages) routes))
+
+(defn merge-page-trees
+  [base-tree over-tree]
+  (let [groups (group-by #(-> % :slug keyword) (concat base-tree over-tree))
+        tree-merge (map 
+                    (fn [[slug pages]]
+                      (let [[base-page over-page] pages
+                            [base-children over-children] (map :children pages)
+                            children (merge-page-trees base-children over-children)
+                            merged (merge base-page over-page)]
+                        (assoc merged
+                          :slug slug
+                          :children children)))
+                    groups)]
+    tree-merge))
