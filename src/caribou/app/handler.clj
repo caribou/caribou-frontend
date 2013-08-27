@@ -4,7 +4,7 @@
         [ring.middleware.resource :only (wrap-resource)]
         [ring.middleware.file-info :only (wrap-file-info)]
         [ring.middleware.head :only (wrap-head)]
-        [ring.middleware.json-params :only (wrap-json-params)]
+        [ring.middleware.json :only (wrap-json-params)]
         [ring.middleware.multipart-params :only (wrap-multipart-params)]
         [ring.middleware.session :only (wrap-session)]
         [ring.util.response :only (resource-response file-response)])
