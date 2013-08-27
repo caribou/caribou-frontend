@@ -26,9 +26,14 @@
                             :show-stacktrace false}
                     :cljs {:root "resources/cljs"
                            :reload false
-                           :options 
-                           {:output-dir "resources/public/js/out"
-                            :pretty-print true}}
+                           :options {:output-to "resources/public/js/app/caribou.js"
+                                     :output-dir "resources/public/js/app/out"
+                                     :pretty-print true}
+                           :brepl {:listen true
+                                   :port 44994
+                                   :path "repl"
+                                   :server (atom nil)
+                                   :env (atom nil)}}
                     :i18n {:enabled false
                            :locales (atom ())
                            :resource-map (atom {})}
