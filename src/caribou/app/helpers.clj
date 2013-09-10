@@ -86,7 +86,7 @@
     (.format (java.text.SimpleDateFormat. "HH:mm") date)
     "00:00"))
 
-(defn resize-image
+(defn resize-image-local
   [image opts]
   (let [path (asset/asset-location image)
         asset-root (config/draw :assets :dir)
@@ -95,6 +95,17 @@
         target (path/lichen-uri lichen-path queries "")]
     (lichen/lichen-resize lichen-path opts asset-root)
     (str (config/draw :assets :root) "/" target)))
+
+
+(defn resize-image
+  [image opts]
+  (let [opts (update-in opts [:quality] #(or % 0.8))]
+    (if-not (config/draw :aws :bucket)
+      (resize-image-local image opts)
+      (lichen/lichen-resize-s3 (or (:path image) image)
+                               opts
+                               (config/draw :assets :prefix)
+                               (config/draw :aws :credentials)))))
 
 (defn safer-resize-image
   [image opts]
