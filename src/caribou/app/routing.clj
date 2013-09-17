@@ -1,17 +1,13 @@
 (ns caribou.app.routing
   (:use [clj-time.core :only (now)]
-        [clj-time.format :only (unparse formatters)]
-        [ring.middleware file file-info])
+        [clj-time.format :only (unparse formatters)])
   (:require [clojure.string :as string]
             [clout.core :as clout]
             [flatland.ordered.map :as flatland]
             [caribou.app.controller :as controller]
             [caribou.app.error :as error]
-            [caribou.app.template :as template]
-            [caribou.app.util :as app-util]
             [caribou.logger :as log]
-            [caribou.config :as config]
-            [caribou.util :as util]))
+            [caribou.config :as config]))
 
 (defrecord Route [slug method path route action])
 

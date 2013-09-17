@@ -7,8 +7,6 @@
             [ring.util.codec :as codec]
             [ring.middleware.basic-authentication :only (wrap-basic-authentication)]
             [caribou.config :as config]
-            [caribou.util :as util]
-            [caribou.db :as db]
             [caribou.model :as model]
             [caribou.logger :as log]
             [caribou.app.auth :as auth]
@@ -37,16 +35,22 @@
 
 (defn placeholder?
   [el]
-  (and
-   (keyword? el)
-   (= \$ (-> el name first))))
+  (or
+   (and
+    (keyword? el)
+    (= \$ (-> el name first)))
+   (= \: (first el))))
+
+(defn extract-key
+  [el]
+  (-> el name (subs 1) keyword))
 
 (defn siphon-substitute
   [spec request]
   (walk/postwalk
    (fn [el]
      (if (placeholder? el)
-       (let [key (-> el name (subs 1) keyword)]
+       (let [key (extract-key el)]
          (-> request :params key))
        el))
    spec))
