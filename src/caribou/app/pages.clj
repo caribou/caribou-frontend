@@ -39,7 +39,9 @@
    (and
     (keyword? el)
     (= \$ (-> el name first)))
-   (= \: (first el))))
+   (and 
+    (string? el)
+    (= \: (first el)))))
 
 (defn extract-key
   [el]
