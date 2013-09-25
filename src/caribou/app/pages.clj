@@ -67,8 +67,8 @@
         (reduce
          (fn [content [key siphon]]
            (let [spec (:spec siphon)
-                 model (:model spec)
-                 op-slug (:op spec)
+                 model (keyword (:model spec))
+                 op-slug (keyword (:op spec))
                  op (get op-map op-slug)
                  spec (dissoc spec :model :op)
                  filled (siphon-substitute spec request)
