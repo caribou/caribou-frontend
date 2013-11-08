@@ -41,15 +41,17 @@
   [handler config]
   (fn [request]
     (caribou/with-caribou config
-      (try 
-        (handler request)
-        (catch Exception e 
-          (let [trace (.getStackTrace e)
-                stack (map #(str "ERROR    |--> " %) trace)]
-            (log/error (string/join "\n" (cons (str e) stack)))
-            (if (config/draw :error :show-stacktrace)
-              (throw e)
-              (error/render-error :500 request))))))))
+      (if (config/draw :error :catch-exceptions)
+        (try 
+          (handler request)
+          (catch Exception e 
+            (let [trace (.getStackTrace e)
+                  stack (map #(str "ERROR    |--> " %) trace)]
+              (log/error (string/join "\n" (cons (str e) stack)))
+              (if (config/draw :error :show-stacktrace)
+                (throw e)
+                (error/render-error :500 request)))))
+        (handler request)))))
 
 (defn make-handler
   [& args]

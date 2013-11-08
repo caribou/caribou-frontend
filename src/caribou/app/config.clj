@@ -23,6 +23,7 @@
                                :cache-strategy :never}
                     :error {:handlers (atom {})
                             :templates (atom {})
+                            :catch-exceptions true
                             :show-stacktrace false}
                     :cljs {:root "resources/cljs"
                            :reload false
