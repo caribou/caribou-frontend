@@ -1,7 +1,7 @@
-(defproject caribou/caribou-frontend "0.12.37"
+(defproject caribou/caribou-frontend "0.13.0"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [caribou/caribou-core "0.12.30"]
+                 [caribou/caribou-core "0.13.0"]
                  [cljsbuild "0.3.3"
                   :exclusions [fs]]
                  [clj-time "0.4.4"]
@@ -22,10 +22,6 @@
                  [org.flatland/ordered "1.4.0"]
                  [ns-tracker "0.2.1"]]
   :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-  :autodoc {:name "Caribou Frontend"
-            :page-title "Caribou Frontend - Documentation"
-            :description
-            "This is a routing and template rendering frontend for Caribou Core."}
   :ring {:handler caribou.app.core/handler
          :init caribou.app.core/init
          :servlet-name "caribou-frontend"
