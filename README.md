@@ -4,10 +4,12 @@ A Page hierarchy and routing to action mapping based on Caribou Core model struc
 
 ## Usage
 
-<pre>> lein caribou create tundra
+<pre>
+> lein new caribou tundra
 > cd tundra
 > lein caribou bootstrap resources/config/development.clj
-> lein caribou start</pre>
+> lein run
+</pre>
 
 Then navigate to http://localhost:33333
 
