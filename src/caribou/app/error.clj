@@ -31,9 +31,9 @@
       error-template
       default-error-template)))
 
-(defn render-error 
+(defn render-error
   [err request]
   (let [err-handler (or (get (deref (config/draw :error :handlers)) err) default-handler)
         err-template (or (get (deref (config/draw :error :templates)) err) (find-error-template err))
-        err-request (assoc request :status (read-string (name err)) :template (template/find-template err-template))]
+        err-request (assoc request :status (read-string (name err)) :template err-template)]
     (err-handler err-request)))

@@ -3,7 +3,9 @@
             [cheshire.core :as json]
             [caribou.logger :as log]
             [caribou.util :as util]
-            [caribou.app.format :as format]))
+            [caribou.app.format :as format]
+            [antlers.core :as antlers]
+            [caribou.app.template :as template]))
 
 (defn load-namespace
   [paths])
@@ -27,15 +29,16 @@
   (if action-key
     (ns-resolve controller-ns (symbol action-key))))
 
-(defn default-template
-  [params]
-  (str params))
-
 (defn format-template
   [format params]
   (let [handler (format/format-handlers (keyword format) params)]
     (fn [request]
       (handler (dissoc request :content-type :template :session :status) params))))
+
+(defn render-template [{:keys [render-fn template] :as params}]
+  (if render-fn
+    (render-fn template params)
+    (antlers/render-file (template/find-template template) params)))
 
 (defn render
   "Render the template corresponding to this page and return a proper response."
@@ -45,14 +48,21 @@
         :content-type (get format/content-map (keyword format))
         :template (or (format-template format params) str))))
   ([params]
-     (let [template (or (:template params) default-template)
+     (let [render (or (:render-fn params) antlers/render-file)
+           template (:template params)
            content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html;charset=utf-8")
            headers (merge (or (:headers params) {}) {"Content-Type" content-type})
            status (:status params)
            session (:session params)
            response {:status (or status 200)
-                     :body (template params)
+                     :body (render-template params)
                      :headers headers}]
+
+
+       (println "rendering" (:template params)
+              "using" render
+              "\n\nrendered" response "\n\n")
+
        (if (contains? params :session)
          (assoc response :session session)
          response))))
