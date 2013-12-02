@@ -23,7 +23,7 @@
     (let [template-path (path-for-template path)]
       (if (template-exists? template-path)
         template-path
-        (throw (ex-info (str "No template by the name " path)))))))
+        (throw (ex-info (str "No template by the name " path) {:type :template-not-found}))))))
 
 (defn register-helper
   [helper-name helper]
