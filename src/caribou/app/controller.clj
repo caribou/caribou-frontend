@@ -48,8 +48,7 @@
         :content-type (get format/content-map (keyword format))
         :template (or (format-template format params) str))))
   ([params]
-     (let [render (or (:render-fn params) antlers/render-file)
-           template (:template params)
+     (let [template (:template params)
            content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html;charset=utf-8")
            headers (merge (or (:headers params) {}) {"Content-Type" content-type})
            status (:status params)
@@ -57,12 +56,6 @@
            response {:status (or status 200)
                      :body (render-template params)
                      :headers headers}]
-
-
-       (println "rendering" (:template params)
-              "using" render
-              "\n\nrendered" response "\n\n")
-
        (if (contains? params :session)
          (assoc response :session session)
          response))))

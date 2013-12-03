@@ -78,7 +78,6 @@
     (assoc page
       :content content)))
 
-;;TODO: the following two functions appear identical
 (defn generate-core-action
   [controller-namespace controller-key action-key template page]
   (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
@@ -88,11 +87,11 @@
 (defn generate-reloading-action
   [controller-namespace controller-key action-key template page]
   ;; (let [watched-namespaces (ns-tracker ["src"])]
-    (fn [request]
-      ;; (doseq [ns-sym (watched-namespaces)]
-      ;;   (require :reload ns-sym))
-      (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
-        (action (merge request {:template (or template (page :template)) :page (draw-siphons page request)})))))
+  (fn [request]
+    ;; (doseq [ns-sym (watched-namespaces)]
+    ;;   (require :reload ns-sym))
+    (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
+      (action (merge request {:template (or template (page :template)) :page (draw-siphons page request)})))))
 
 (defn protect-action
   [action protection]
