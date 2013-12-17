@@ -7,15 +7,6 @@
             [antlers.core :as antlers]
             [antlers.parser :as parser]))
 
-(defn default-template
-  [path]
-  (fn [params]
-    (str "No template by the name " path)))
-
-(defn template-closure
-  [path]
-  (fn [params]
-    (antlers/render-file path params)))
 
 (defn path-for-template
   [path]
@@ -31,8 +22,7 @@
   (when-not (empty? path)
     (let [template-path (path-for-template path)]
       (if (template-exists? template-path)
-        (template-closure template-path)
-        (default-template path)))))
+        template-path))))
 
 (defn register-helper
   [helper-name helper]

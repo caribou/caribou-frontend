@@ -39,7 +39,7 @@
    (and
     (keyword? el)
     (= \$ (-> el name first)))
-   (and 
+   (and
     (string? el)
     (= \: (first el)))))
 
@@ -80,20 +80,18 @@
 
 (defn generate-core-action
   [controller-namespace controller-key action-key template page]
-  (let [action (retrieve-controller-action controller-namespace controller-key action-key)
-        found-template (template/find-template (or template (page :template)))]
+  (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
     (fn [request]
-      (action (merge request {:template found-template :page (draw-siphons page request)})))))
+      (action (merge request {:template (or template (page :template)) :page (draw-siphons page request)})))))
 
 (defn generate-reloading-action
   [controller-namespace controller-key action-key template page]
   ;; (let [watched-namespaces (ns-tracker ["src"])]
-    (fn [request]
-      ;; (doseq [ns-sym (watched-namespaces)]
-      ;;   (require :reload ns-sym))
-      (let [action (retrieve-controller-action controller-namespace controller-key action-key)
-            found-template (template/find-template (or template (page :template)))]
-        (action (merge request {:template found-template :page (draw-siphons page request)})))))
+  (fn [request]
+    ;; (doseq [ns-sym (watched-namespaces)]
+    ;;   (require :reload ns-sym))
+    (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
+      (action (merge request {:template (or template (page :template)) :page (draw-siphons page request)})))))
 
 (defn protect-action
   [action protection]
@@ -247,7 +245,7 @@
   (let [[path key subroutes] route
         methods (get pages key)
         children (build-page-tree subroutes pages)
-        spec {:path (string/replace path #"^/" "") 
+        spec {:path (string/replace path #"^/" "")
               :slug key}
         method-pages (mapv
                       (fn [method]
@@ -262,7 +260,7 @@
 (defn merge-page-trees
   [base-tree over-tree]
   (let [groups (group-by #(-> % :slug keyword) (concat base-tree over-tree))
-        tree-merge (map 
+        tree-merge (map
                     (fn [[slug pages]]
                       (let [[base-page over-page] pages
                             [base-children over-children] (map :children pages)
