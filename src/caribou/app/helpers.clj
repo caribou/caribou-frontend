@@ -97,7 +97,7 @@
     (str (config/draw :assets :root) "/" target)))
 
 
-(defn resize-image
+(defn resize-image-
   [image opts]
   (let [opts (update-in opts [:quality] #(or % 0.8))]
     (if-not (config/draw :aws :bucket)
@@ -107,7 +107,7 @@
                                (config/draw :assets :prefix)
                                (config/draw :aws :credentials)))))
 
-(defn safer-resize-image
+(defn resize-image
   [image opts]
   (if image
     (resize-image image opts)
