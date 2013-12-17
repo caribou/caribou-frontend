@@ -48,12 +48,6 @@
     (render-fn template params)
     (render-antlers-template template params)))
 
-    ;; (if-let [found-template (template/find-template template)]
-    ;;   (antlers/render-file found-template params)
-    ;;   (do 
-    ;;     (log/out :NO_TEMPLATE (str "No template by the name " template))
-    ;;     (str params)))
-
 (defn render
   "Render the template corresponding to this page and return a proper response."
   ([format params]
