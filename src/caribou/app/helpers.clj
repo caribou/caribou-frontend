@@ -97,7 +97,7 @@
     (str (config/draw :assets :root) "/" target)))
 
 
-(defn resize-image-
+(defn resize-image
   [image opts]
   (let [opts (update-in opts [:quality] #(or % 0.8))]
     (if-not (config/draw :aws :bucket)
@@ -107,7 +107,7 @@
                                (config/draw :assets :prefix)
                                (config/draw :aws :credentials)))))
 
-(defn resize-image
+(defn safer-resize-image
   [image opts]
   (if image
     (resize-image image opts)
@@ -156,7 +156,8 @@
    :yyyy-mm-dd-or-current yyyy-mm-dd-or-current
    :equals =
    :linebreak linebreak
-   :resize resize-image
+   :unsafe-resize resize-image
+   :resize safer-resize-image
    :route-for route-for
    :safer-resize safer-resize-image
    :safe-route-for safe-route-for
