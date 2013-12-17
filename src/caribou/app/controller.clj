@@ -35,10 +35,24 @@
     (fn [request]
       (handler (dissoc request :content-type :template :session :status) params))))
 
+(defn render-antlers-template
+  [template params]
+  (if-let [found (template/find-template template)]
+    (antlers/render-file found params)
+    (do 
+      (log/out :NO_TEMPLATE (str "No template by the name " template))
+      (str params))))
+
 (defn render-template [{:keys [render-fn template] :as params}]
   (if render-fn
     (render-fn template params)
-    (antlers/render-file (template/find-template template) params)))
+    (render-antlers-template template params)))
+
+    ;; (if-let [found-template (template/find-template template)]
+    ;;   (antlers/render-file found-template params)
+    ;;   (do 
+    ;;     (log/out :NO_TEMPLATE (str "No template by the name " template))
+    ;;     (str params)))
 
 (defn render
   "Render the template corresponding to this page and return a proper response."
