@@ -1,4 +1,4 @@
-(defproject caribou/caribou-frontend "0.13.2"
+(defproject caribou/caribou-frontend "0.13.3"
   :description "The page routing ring handler for caribou"
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [caribou/caribou-core "0.13.1"]
@@ -6,7 +6,7 @@
                   :exclusions [fs]]
                  [clj-time "0.4.4"]
                  [polaris "0.0.2"]
-                 [caribou/lichen "0.6.14"]
+                 [caribou/lichen "0.6.16"]
                  [ring/ring-json "0.2.0" :exclusions [cheshire]]
                  [ring "1.2.0"
                   :exclusions [org.clojure/clojure
