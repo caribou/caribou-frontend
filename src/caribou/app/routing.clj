@@ -97,7 +97,7 @@
        (merge-route added route-slug "HEAD" (str route-re) (fn [req] ""))))
    routes
    (routes-in-order routes)))
-     
+
 (defn add-head-routes
   []
   (swap! (config/draw :routes) merge-head-routes))
