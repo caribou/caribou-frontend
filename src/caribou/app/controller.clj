@@ -43,10 +43,12 @@
       (log/out :NO_TEMPLATE (str "No template by the name " template))
       (str params))))
 
-(defn render-template [{:keys [render-fn template] :as params}]
-  (if render-fn
-    (render-fn template params)
-    (render-antlers-template template params)))
+(defn render-template 
+  [{:keys [render-fn template] :as params}]
+  (cond 
+   render-fn (render-fn template params)
+   (fn? template) (template params) 
+   :else (render-antlers-template template params)))
 
 (defn render
   "Render the template corresponding to this page and return a proper response."

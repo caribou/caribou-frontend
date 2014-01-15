@@ -6,13 +6,18 @@
             [clojure.walk :as walk]
             [ring.util.codec :as codec]
             [ring.middleware.basic-authentication :only (wrap-basic-authentication)]
+            [polaris.core :as polaris]
+            [caribou.util :as util]
             [caribou.config :as config]
             [caribou.model :as model]
             [caribou.logger :as log]
             [caribou.app.auth :as auth]
             [caribou.app.controller :as controller]
-            [caribou.app.routing :as routing]
             [caribou.app.template :as template]))
+
+(defn default-action
+  [request]
+  (controller/render request))
 
 (defn create-missing-controller-action
   [controller-key action-key]
@@ -28,10 +33,10 @@
       controller-action
       (do
         (log/info (format "No action named %s in %s!" action-key controller-key))
-        routing/default-action))
+        default-action))
     (do
       (log/info (format "No controller namespace named %s.%s!" controller-namespace controller-key))
-      routing/default-action)))
+      default-action)))
 
 (defn placeholder?
   [el]
@@ -82,16 +87,13 @@
   [controller-namespace controller-key action-key template page]
   (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
     (fn [request]
-      (action (merge request {:template (or template (page :template)) :page (draw-siphons page request)})))))
+      (action (merge request {:template (or template (:template page)) :page (draw-siphons page request)})))))
 
 (defn generate-reloading-action
   [controller-namespace controller-key action-key template page]
-  ;; (let [watched-namespaces (ns-tracker ["src"])]
   (fn [request]
-    ;; (doseq [ns-sym (watched-namespaces)]
-    ;;   (require :reload ns-sym))
     (let [action (retrieve-controller-action controller-namespace controller-key action-key)]
-      (action (merge request {:template (or template (page :template)) :page (draw-siphons page request)})))))
+      (action (merge request {:template (or template (:template page)) :page (draw-siphons page request)})))))
 
 (defn protect-action
   [action protection]
@@ -110,11 +112,6 @@
       generated
       (protect-action generated protection))))
 
-(defn make-route
-  [[path slug method]]
-  (let [action (get (deref (config/draw :actions)) (routing/deslash slug))]
-    (routing/add-route slug method path action)))
-
 (defn divine-protection
   [page protection]
   (if (:protected page)
@@ -122,38 +119,38 @@
      :password (:crypted-password page)}
     protection))
 
-(defn bind-action
-  "Make a single route for a single page, given its overarching path (above-path)"
-  [page controller-namespace above-path protection middleware]
-  (let [page-path (:path page)
-        path (str above-path (if-not (empty? page-path) (str "/" (name page-path))))
-        page-slug (keyword (or (:slug page) (str (:id page))))
-        controller-key (:controller page)
-        action-key (:action page)
-        method-key (:method page)
-        template (:template page)
-        protection (divine-protection page protection)
-        full (generate-action page controller-namespace template controller-key action-key protection)]
-    (swap! (config/draw :actions) merge {page-slug (middleware full)})
-    (concat
-     [[path page-slug method-key]]
-     (mapcat #(bind-action % controller-namespace path protection middleware) (:children page)))))
-
 (defn slashify-route
   [[path slug method]]
   [(str path "/") (keyword (str (name slug) "-with-slash")) method])
 
-(defn generate-page-routes
-  "Given a tree of pages construct and return a list of corresponding routes."
-  [pages controller-namespace subpath middleware]
-  (let [localization (or (config/draw :app :localize-routes) "")
-        path (str subpath localization)
-        routes (apply concat (map #(bind-action % controller-namespace path nil middleware) pages))
-        direct (map make-route routes)
-        unslashed (filter #(empty? (re-find #"/$" (first %))) routes)
-        slashed (map slashify-route unslashed)
-        indirect (map make-route slashed)]
-    (concat indirect direct)))
+(defn up-key
+  [k]
+  (keyword (string/upper-case (name k))))
+
+(defn present?
+  [s]
+  (and s (not (= "" s))))
+
+(defn convert-page-to-route
+  [{:keys [path slug id method controller action template siphons children] :as page} 
+   controller-namespace above-path protection middleware]
+  (let [subpath (str above-path (if-not (empty? path) (str "/" (name path))))
+        page-slug (keyword (or slug id))
+        protection (divine-protection page protection)
+        method-key (if (present? method) (up-key method) :ALL)
+        handler (generate-action page controller-namespace template controller action protection)]
+    [subpath page-slug {method-key (middleware handler)}
+     (map #(convert-page-to-route % controller-namespace nil protection middleware) children)]))
+
+(defn convert-pages-to-routes
+  ([pages] (convert-pages-to-routes pages (config/draw :controller :namespace)))
+  ([pages controller-namespace] (convert-pages-to-routes pages controller-namespace ""))
+  ([pages controller-namespace subpath] (convert-pages-to-routes pages controller-namespace subpath identity))
+  ([pages controller-namespace subpath middleware]
+     (let [localization (or (config/draw :app :localize-routes) "")
+           path (str subpath localization)
+           routes (map #(convert-page-to-route % controller-namespace path nil middleware) pages)]
+       routes)))
 
 (defn all-pages
   []
@@ -163,80 +160,34 @@
                :order {:position :asc}})]
     (model/arrange-tree rows)))
 
-(defn invoke-pages
-  "Call up the pages and arrange them into a tree."
-  [tree]
-  (reset! (config/draw :pages) tree))
-
-(defn empty-middleware
-  [handler]
-  (fn [request]
-    (handler request)))
-
-(defn create-page-routes
-  "Invoke pages from the db and generate the routes based on them."
-  ([] (create-page-routes (all-pages)))
-  ([tree]
-     (invoke-pages tree)
-     (doall (generate-page-routes (deref (config/draw :pages)) (config/draw :controller :namespace) "" empty-middleware))))
-
-(defn add-page-routes
-  ([] (add-page-routes (all-pages)))
-  ([pages] (add-page-routes pages (config/draw :controller :namespace)))
-  ([pages controller-namespace] (add-page-routes pages controller-namespace ""))
-  ([pages controller-namespace subpath] (add-page-routes pages controller-namespace subpath empty-middleware))
-  ([pages controller-namespace subpath middleware]
-     (doall (generate-page-routes pages controller-namespace subpath middleware))))
-
-(defn get-path
-  [routes slug]
-  (or (get (get routes (keyword slug)) :path)
-      (throw (new Exception
-                  (str "route for " slug " not found")))))
-
-(defn sort-route-opts
-  [routes slug opts]
-  (let [path (get-path routes slug)
-        opt-keys (keys opts)
-        route-keys (map
-                    read-string
-                    (filter
-                     #(= (first %) \:)
-                     (string/split path #"/")))
-        query-keys (remove (into #{} route-keys) opt-keys)]
-    {:path path
-     :route (select-keys opts route-keys)
-     :query (select-keys opts query-keys)}))
-
-(defn select-route
-  [slug opts]
-  (:route (sort-route-opts (deref (config/draw :routes)) slug opts)))
-
-(defn select-query
-  [slug opts]
-  (:query (sort-route-opts (deref (config/draw :routes)) slug opts)))
-
-(defn reverse-route
-  [routes slug opts]
-  (let [{path :path
-         route-matches :route
-         query-matches :query} (sort-route-opts routes slug opts)
-        route-keys (keys route-matches)
-        query-keys (keys query-matches)
-        opt-keys (keys opts)
-        base (reduce
-              #(string/replace-first %1 (str (keyword %2)) (get opts %2))
-              path opt-keys)
-        query-item (fn [[k v]] (str (codec/url-encode (name k))
-                                    "="
-                                    (codec/url-encode v)))
-        query (string/join "&" (map query-item (select-keys opts query-keys)))
-        query (and (seq query) (str "?" query))]
-    (str base query)))
-
 (defn route-for
-  [slug opts]
-  (reverse-route (deref (config/draw :routes)) slug opts))
+  [slug params]
+  (polaris/reverse-route (deref (config/draw :routes)) slug params))
+
+(defn safe-route-for
+  [slug & params]
+  (polaris/reverse-route (deref (config/draw :routes)) slug (apply merge {} params) {:no-query true}))
+
+(declare bind-actions)
+
+(defn bind-method
+  [action namespace]
+  (if (fn? action)
+    action
+    (generate-action action namespace (:template action) (:controller action) (:action action) nil)))
+
+(defn bind-methods
+  [[path key methods children] namespace]
+  (let [bound (util/map-vals #(bind-method % namespace) methods)
+        bound-children (bind-actions children namespace)]
+    [path key bound bound-children]))
+
+(defn bind-actions
+  ([routes] (bind-actions routes (config/draw :controller :namespace)))
+  ([routes namespace]
+     (map #(bind-methods % namespace) routes)))
+
+;; Old way of doing pages and routes
 
 (declare build-page-tree)
 

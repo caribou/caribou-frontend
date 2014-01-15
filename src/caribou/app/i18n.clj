@@ -3,7 +3,6 @@
   (:require [caribou.db :as db]
             [caribou.config :as config]
             [caribou.util :as util]
-            [caribou.app.halo :as halo]
             [caribou.app.middleware :as middleware]
             [caribou.app.template :as template]))
 
@@ -100,8 +99,5 @@
   []
   (if (config/draw :app :i18n-enabled)
     (do
-      (if (config/draw :halo :enabled)
-        (do 
-          (halo/append-route "GET" "reload-i18n" (fn [request] (load-resources) "i18n Reloaded"))))
       (middleware/add-custom-middleware wrap-i18n get-locale)
       (template/register-helper "_" get-resource))))

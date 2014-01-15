@@ -119,7 +119,7 @@
 
 (defn safe-route-for
   [slug & args]
-  (pages/route-for slug (pages/select-route slug (apply merge args))))
+  (pages/safe-route-for slug (apply merge args)))
 
 (defn truncate
   [string count]
