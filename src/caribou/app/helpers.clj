@@ -1,6 +1,7 @@
 (ns caribou.app.helpers
   (:require [caribou.asset :as asset]
             [caribou.config :as config]
+            [caribou.util :as util]
             [caribou.app.pages :as pages]
             [lichen.path :as path]
             [lichen.core :as lichen]
@@ -163,3 +164,16 @@
    :safe-route-for safe-route-for
    :smartquote smartquote
    :truncate truncate})
+
+(defn wrap-helpers
+  ([handler] (wrap-helpers handler {}))
+  ([handler additional]
+     (fn [request]
+       (handler 
+        (update-in 
+         request [:helpers] 
+         #(util/deep-merge-with 
+           (fn [& c] 
+             (println c)
+             (last c)) 
+           helpers (or % {}) additional))))))

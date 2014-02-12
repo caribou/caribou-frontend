@@ -61,10 +61,11 @@
      (let [template (:template params)
            content-type (or (:content-type params) (-> params :headers (get "Content-Type")) "text/html;charset=utf-8")
            headers (merge (or (:headers params) {}) {"Content-Type" content-type})
+           helpers (:helpers params)
            status (:status params)
            session (:session params)
            response {:status (or status 200)
-                     :body (render-template params)
+                     :body (render-template (merge helpers params))
                      :headers headers}]
        (if (contains? params :session)
          (assoc response :session session)

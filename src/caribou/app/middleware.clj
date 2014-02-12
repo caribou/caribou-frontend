@@ -48,3 +48,10 @@
           (handler request)))
       (handler request))))
 
+(defn wrap-default-content-type
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (if (get-in response [:headers "Content-Type"])
+        response
+        (assoc-in response [:headers "Content-Type"] "text/html;charset=utf8")))))
