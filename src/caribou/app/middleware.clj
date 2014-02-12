@@ -37,7 +37,6 @@
        :is-xhr (is-xhr? request)))))
 
 (defn wrap-servlet-path-info
-  "Removes the deployed servlet context from the request URI when running as a war"
   [handler]
   (fn [request]
     (if-let [servlet-req (:servlet-request request)]
@@ -47,6 +46,13 @@
           (handler (assoc request :uri (.substring uri (.length context))))
           (handler request)))
       (handler request))))
+
+(defn wrap-path-info
+  [handler]
+  (fn [{:keys [path-info context uri] :as request}]
+    (cond 
+     path-info (handler (assoc request :uri path-info))
+     :else (handler request))))
 
 (defn wrap-default-content-type
   [handler]
