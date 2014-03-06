@@ -1,13 +1,4 @@
 (ns caribou.app.handler
-  (:use [ring.middleware.content-type :only (wrap-content-type)]
-        [ring.middleware.file :only (wrap-file)]
-        [ring.middleware.resource :only (wrap-resource)]
-        [ring.middleware.file-info :only (wrap-file-info)]
-        [ring.middleware.head :only (wrap-head)]
-        [ring.middleware.json :only (wrap-json-params)]
-        [ring.middleware.multipart-params :only (wrap-multipart-params)]
-        [ring.middleware.session :only (wrap-session)]
-        [ring.util.response :only (resource-response file-response)])
   (:require [flatland.ordered.map :as flatland]
             [ns-tracker.core :as ns-tracker]
             [clojure.string :as string]
@@ -21,12 +12,6 @@
             [caribou.app.request :as request]
             [caribou.app.template :as template]
             [caribou.app.util :as app-util]))
-
-(defn use-public-wrapper
-  [handler public-dir]
-  (if public-dir
-    (fn [request] ((wrap-resource handler public-dir) request))
-    (fn [request] (handler request))))
 
 (defn wrap-caribou
   [handler config]
@@ -66,8 +51,13 @@
                 (require :reload ns-sym))
               (reset! handler (make-router reset))))))
       (let [response (@handler request)]
-        (if (:reset-handler response)
-          (do
-            (reset! handler (make-router reset))
-            (dissoc response :reset-handler))
-          response)))))
+        (cond 
+         (:reset-handler response)
+         (do
+           (reset! handler (make-router reset))
+           (dissoc response :reset-handler))
+
+         (= 404 (:status response))
+         (error/render-error :404 request)
+
+         :else response)))))
